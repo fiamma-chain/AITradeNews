@@ -29,8 +29,8 @@ class AutoTrader:
         self.min_margin = settings.ai_min_margin  # 最小保证金（从配置读取）
         self.max_margin = settings.ai_max_margin  # 最大保证金（从配置读取）
         self.max_leverage = settings.ai_max_leverage  # 最大杠杆（从配置读取，默认5x）
-        self.stop_loss_pct = 0.05  # 止损比例 5%（给AI更多空间）
-        self.take_profit_pct = 0.10  # 止盈比例 10%（追求更大收益）
+        self.stop_loss_pct = settings.ai_stop_loss_pct  # 止损比例（从配置读取）
+        self.take_profit_pct = settings.ai_take_profit_pct  # 止盈比例（从配置读取）
         
         # 持仓管理
         self.positions: Dict[str, Dict] = {}  # {coin: position_info}

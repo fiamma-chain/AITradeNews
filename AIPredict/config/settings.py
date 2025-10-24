@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """应用配置"""
     
     # 交易平台配置
-    enabled_platforms: str = "aster"  # 启用的平台，逗号分隔（只在Aster交易，但从Hyperliquid获取市场数据）
+    enabled_platforms: str = "hyperliquid,aster"  # 启用的平台，逗号分隔
     
     # Hyperliquid 配置（默认主网）
     hyperliquid_testnet: bool = False
@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     ai_min_margin: float = 120.0  # 最小保证金（U）
     ai_max_margin: float = 240.0  # 最大保证金（U）
     ai_max_leverage: float = 5.0  # 最大杠杆倍数（AI可根据信心度动态调整1-5x）
+    ai_stop_loss_pct: float = 0.15  # 止损比例 15%
+    ai_take_profit_pct: float = 0.30  # 止盈比例 30%
     
     # 分组共识配置（默认主网）
     group_1_name: str = "Alpha组"

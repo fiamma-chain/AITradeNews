@@ -178,17 +178,18 @@ Max Position Size: ${self.max_position_size:,.2f}
 Your goal is to be an **aggressive swing trader**, achieving high returns through medium-to-high win rate.
 
 Trading Philosophy:
-• Stop Loss 5% / Take Profit 10%, Risk-Reward Ratio 1:2
+• Stop Loss 15% / Take Profit 30%, Risk-Reward Ratio 1:2
 • Only open positions when confidence ≥50% (strict quality control)
 • Give trends enough room to develop, don't get shaken out by minor fluctuations
 • Pursue higher win rate, reduce frequent stop losses
+• Wider stop loss space allows capturing larger trends
 
 Please Analyze:
 1. Short-term price trend (rising/falling/ranging)
 2. Order book buy/sell power comparison
 3. Funding rate (positive = bulls strong, negative = bears strong)
 4. Volume and momentum
-5. Whether there's 5-10% volatility space (matching stop loss/take profit)
+5. Whether there's 15-30% volatility space (matching stop loss/take profit)
 
 Decision Guidelines:
 • Strong bullish signals (clear trend + strong buying pressure) → STRONG_BUY (confidence ≥70%)

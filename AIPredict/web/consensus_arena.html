@@ -101,7 +101,7 @@
         .stat-label {
             font-size: 0.9em;
             opacity: 0.8;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         
         .stat-value {
@@ -128,7 +128,7 @@
         
         .chart-wrapper {
             position: relative;
-            height: 400px;
+            height: 600px;
         }
         
         .decisions-container {
@@ -342,130 +342,190 @@
             <h1 style="display: flex; align-items: center; justify-content: center; gap: 15px;">
                 <span>🤖 AI Trading Competitors - Powered by</span>
                 <img src="/web/images/aster.jpg" alt="Aster" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+                <span style="font-size: 0.6em; color: rgba(255,255,255,0.3);">+</span>
+                <img src="/web/images/hyperliquid.jpg" alt="Hyperliquid" onerror="this.onerror=null; this.src='/web/images/hyperliquid.png';" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
             </h1>
         </header>
         
         <!-- AI Trading Competitors -->
-        <div style="background: linear-gradient(135deg, #1e222d 0%, #252936 100%); border: 2px solid #2b3139; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); margin-bottom: 30px;">
+        <div style="background: linear-gradient(135deg, #1e222d 0%, #252936 100%); border: 2px solid #2b3139; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); margin-bottom: 30px;">
             
             <!-- VS Battle Header -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <span style="font-size: 2em; font-weight: bold; color: #fff; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">⚔️ VS ⚔️</span>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <span style="font-size: 1.6em; font-weight: bold; color: #fff; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">⚔️ VS ⚔️</span>
                     </div>
             
-            <!-- Competitors Grid: 4 columns x 2 rows -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                <!-- Alpha Team -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(34, 197, 94, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">TEAM</div>
-                    <div style="font-size: 1.1em; font-weight: bold; color: #22c55e; margin-bottom: 8px;">Alpha</div>
-                    <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 8px;">
+            <!-- Competitors Grid: 5 columns x 2 rows (2 Team platforms + 6 Solo) -->
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+                <!-- Alpha Team - Hyperliquid -->
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">TEAM</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px;">
+                        <div style="font-size: 0.95em; font-weight: bold; color: #22c55e;">Alpha</div>
+                        <img src="/web/images/hyperliquid.jpg" 
+                             alt="HL" title="Hyperliquid" onerror="this.onerror=null; this.src='/web/images/hyperliquid.png';"
+                             style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(34, 197, 94, 0.6);">
+                </div>
+                    <div style="display: flex; justify-content: center; gap: 3px; margin-bottom: 6px;">
                         <img src="/web/images/deepseek.jpg" 
                              alt="DeepSeek" title="DeepSeek" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
                         <img src="/web/images/claude.jpg" 
                              alt="Claude" title="Claude" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
                         <img src="/web/images/grok.jpg" 
                              alt="Grok" title="Grok" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
-                </div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: #22c55e;" id="alpha-total-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                    </div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #22c55e;" id="alpha-hl-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
                     </div>
                 
-                <!-- Beta Team -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(59, 130, 246, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">TEAM</div>
-                    <div style="font-size: 1.1em; font-weight: bold; color: #3b82f6; margin-bottom: 8px;">Beta</div>
-                    <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 8px;">
+                <!-- Alpha Team - Aster -->
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">TEAM</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px;">
+                        <div style="font-size: 0.95em; font-weight: bold; color: #22c55e;">Alpha</div>
+                        <img src="/web/images/aster.jpg" 
+                             alt="AS" title="Aster" 
+                             style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(34, 197, 94, 0.6);">
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 3px; margin-bottom: 6px;">
+                        <img src="/web/images/deepseek.jpg" 
+                             alt="DeepSeek" title="DeepSeek" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                        <img src="/web/images/claude.jpg" 
+                             alt="Claude" title="Claude" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                        <img src="/web/images/grok.jpg" 
+                             alt="Grok" title="Grok" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(34, 197, 94, 0.6);">
+                    </div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #22c55e;" id="alpha-aster-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                </div>
+                
+                <!-- Beta Team - Hyperliquid -->
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(59, 130, 246, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">TEAM</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px;">
+                        <div style="font-size: 0.95em; font-weight: bold; color: #3b82f6;">Beta</div>
+                        <img src="/web/images/hyperliquid.jpg" 
+                             alt="HL" title="Hyperliquid" onerror="this.onerror=null; this.src='/web/images/hyperliquid.png';"
+                             style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(59, 130, 246, 0.6);">
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 3px; margin-bottom: 6px;">
                         <img src="/web/images/gpt4.png" 
                              alt="GPT-4" title="GPT-4" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
                         <img src="/web/images/gemini.png" 
                              alt="Gemini" title="Gemini" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
                         <img src="/web/images/qwen.jpg" 
                              alt="Qwen" title="Qwen" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
                     </div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: #3b82f6;" id="beta-total-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #3b82f6;" id="beta-hl-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+            </div>
+            
+                <!-- Beta Team - Aster -->
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(59, 130, 246, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">TEAM</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 6px;">
+                        <div style="font-size: 0.95em; font-weight: bold; color: #3b82f6;">Beta</div>
+                        <img src="/web/images/aster.jpg" 
+                             alt="AS" title="Aster"
+                             style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(59, 130, 246, 0.6);">
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 3px; margin-bottom: 6px;">
+                        <img src="/web/images/gpt4.png" 
+                             alt="GPT-4" title="GPT-4" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                        <img src="/web/images/gemini.png" 
+                             alt="Gemini" title="Gemini" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                        <img src="/web/images/qwen.jpg" 
+                             alt="Qwen" title="Qwen" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(59, 130, 246, 0.6);">
+                </div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: #3b82f6;" id="beta-aster-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
                     </div>
                 
                 <!-- DeepSeek Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(147, 51, 234, 0.15), rgba(147, 51, 234, 0.05)); border: 2px solid rgba(147, 51, 234, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(147, 51, 234, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(147, 51, 234, 0.15), rgba(147, 51, 234, 0.05)); border: 2px solid rgba(147, 51, 234, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(147, 51, 234, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
                     <img src="/web/images/deepseek.jpg" 
                          alt="DeepSeek" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(147, 51, 234, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">DeepSeek</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(147, 51, 234);" id="deepseek-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="deepseek-solo-address">-</div>
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(147, 51, 234, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">DeepSeek</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(147, 51, 234);" id="deepseek-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="deepseek-solo-address">-</div>
                     </div>
                 
                 <!-- Claude Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05)); border: 2px solid rgba(236, 72, 153, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(236, 72, 153, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05)); border: 2px solid rgba(236, 72, 153, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(236, 72, 153, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
                     <img src="/web/images/claude.jpg" 
                          alt="Claude" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(236, 72, 153, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">Claude</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(236, 72, 153);" id="claude-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="claude-solo-address">-</div>
-                </div>
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(236, 72, 153, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">Claude</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(236, 72, 153);" id="claude-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="claude-solo-address">-</div>
+                    </div>
                 
                 <!-- Grok Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.05)); border: 2px solid rgba(251, 146, 60, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(251, 146, 60, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.05)); border: 2px solid rgba(251, 146, 60, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(251, 146, 60, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
                     <img src="/web/images/grok.jpg" 
                          alt="Grok" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(251, 146, 60, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">Grok</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(251, 146, 60);" id="grok-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="grok-solo-address">-</div>
-            </div>
-            
-                <!-- GPT Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.05)); border: 2px solid rgba(14, 165, 233, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(14, 165, 233, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
-                    <img src="/web/images/gpt4.png" 
-                         alt="GPT-4" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(14, 165, 233, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">GPT-4</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(14, 165, 233);" id="gpt-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="gpt-solo-address">-</div>
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(251, 146, 60, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">Grok</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(251, 146, 60);" id="grok-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="grok-solo-address">-</div>
                     </div>
             
+                <!-- GPT Solo -->
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.05)); border: 2px solid rgba(14, 165, 233, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(14, 165, 233, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
+                    <img src="/web/images/gpt4.png" 
+                         alt="GPT-4" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(14, 165, 233, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">GPT-4</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(14, 165, 233);" id="gpt-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="gpt-solo-address">-</div>
+                </div>
+            
                 <!-- Gemini Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05)); border: 2px solid rgba(234, 179, 8, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(234, 179, 8, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05)); border: 2px solid rgba(234, 179, 8, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(234, 179, 8, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
                     <img src="/web/images/gemini.png" 
                          alt="Gemini" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(234, 179, 8, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">Gemini</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(234, 179, 8);" id="gemini-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="gemini-solo-address">-</div>
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(234, 179, 8, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">Gemini</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(234, 179, 8);" id="gemini-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="gemini-solo-address">-</div>
                 </div>
                 
                 <!-- Qwen Solo -->
-                <div style="text-align: center; background: linear-gradient(145deg, rgba(244, 63, 94, 0.15), rgba(244, 63, 94, 0.05)); border: 2px solid rgba(244, 63, 94, 0.4); border-radius: 10px; padding: 15px; transition: all 0.3s; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(244, 63, 94, 0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;">SOLO</div>
+                <div style="text-align: center; background: linear-gradient(145deg, rgba(244, 63, 94, 0.15), rgba(244, 63, 94, 0.05)); border: 2px solid rgba(244, 63, 94, 0.4); border-radius: 10px; padding: 10px; transition: all 0.3s; position: relative;">
+                    <div style="position: absolute; top: 6px; right: 6px; background: rgba(244, 63, 94, 0.3); padding: 2px 6px; border-radius: 8px; font-size: 0.65em; font-weight: bold;">SOLO</div>
                     <img src="/web/images/qwen.jpg" 
                          alt="Qwen" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');"
-                         style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(244, 63, 94, 0.6); margin-bottom: 8px;">
-                    <div style="font-size: 1.05em; font-weight: bold; color: #fff; margin-bottom: 6px;">Qwen</div>
-                    <div style="font-size: 1.4em; font-weight: bold; color: rgb(244, 63, 94);" id="qwen-solo-roi">0%</div>
-                    <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">ROI</div>
-                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 6px; font-family: monospace;" id="qwen-solo-address">-</div>
+                         style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(244, 63, 94, 0.6); margin-bottom: 6px;">
+                    <div style="font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 5px;">Qwen</div>
+                    <div style="font-size: 1.2em; font-weight: bold; color: rgb(244, 63, 94);" id="qwen-solo-roi">0%</div>
+                    <div style="font-size: 0.7em; opacity: 0.7; margin-top: 3px;">ROI</div>
+                    <div style="font-size: 0.65em; opacity: 0.5; margin-top: 5px; font-family: monospace;" id="qwen-solo-address">-</div>
                     </div>
-                    </div>
-                    </div>
+            </div>
+        </div>
         
         <!-- Performance Curve -->
         <div class="chart-container">
@@ -523,13 +583,13 @@
         
         <!-- Solo AI Decisions -->
         <div style="margin-top: 30px;">
-            <h2 style="text-align: center; margin-bottom: 25px; font-size: 1.6em;">🤖 Solo AI Traders - Individual Decisions</h2>
+            <h2 style="text-align: left; margin-bottom: 25px; font-size: 1.6em;">🤖 Solo AI Traders - Individual Decisions</h2>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                 <!-- DeepSeek Solo -->
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(147, 51, 234); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/deepseek.jpg" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(147, 51, 234);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(147, 51, 234);">
                         DeepSeek
                     </h3>
                     <div id="deepseek-decisions"></div>
@@ -539,7 +599,7 @@
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(236, 72, 153); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/claude.jpg" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(236, 72, 153);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(236, 72, 153);">
                         Claude
                     </h3>
                     <div id="claude-decisions"></div>
@@ -549,7 +609,7 @@
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(251, 146, 60); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/grok.jpg" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(251, 146, 60);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(251, 146, 60);">
                         Grok
                     </h3>
                     <div id="grok-decisions"></div>
@@ -559,7 +619,7 @@
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(14, 165, 233); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/gpt4.png" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(14, 165, 233);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(14, 165, 233);">
                         GPT-4
                     </h3>
                     <div id="gpt-decisions"></div>
@@ -569,7 +629,7 @@
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(234, 179, 8); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/gemini.png" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(234, 179, 8);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(234, 179, 8);">
                         Gemini
                     </h3>
                     <div id="gemini-decisions"></div>
@@ -579,7 +639,7 @@
                 <div class="decisions-container" style="max-height: 500px;">
                     <h3 style="margin-bottom: 15px; color: rgb(244, 63, 94); display: flex; align-items: center; gap: 10px;">
                         <img src="/web/images/qwen.jpg" onerror="this.onerror=null; this.src=this.src.replace('.jpg','.png');" 
-                             style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgb(244, 63, 94);">
+                             style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgb(244, 63, 94);">
                         Qwen
                     </h3>
                     <div id="qwen-decisions"></div>
@@ -601,8 +661,10 @@
         // Logo图片缓存
         const logoImages = {};
         const logoMapping = {
-            'Alpha Team': ['deepseek', 'claude', 'grok'],
-            'Beta Team': ['gpt4', 'gemini', 'qwen'],
+            'Alpha-HL': ['hyperliquid'],  // Alpha Hyperliquid 平台
+            'Alpha-Aster': ['aster'],     // Alpha Aster 平台
+            'Beta-HL': ['hyperliquid'],   // Beta Hyperliquid 平台
+            'Beta-Aster': ['aster'],      // Beta Aster 平台
             'DeepSeek-Solo': ['deepseek'],
             'Claude-Solo': ['claude'],
             'Grok-Solo': ['grok'],
@@ -613,7 +675,7 @@
         
         // 预加载logo图片
         function preloadLogos() {
-            const allLogos = ['deepseek', 'claude', 'grok', 'gpt4', 'gemini', 'qwen'];
+            const allLogos = ['hyperliquid', 'aster', 'deepseek', 'claude', 'grok', 'gpt4', 'gemini', 'qwen'];
             allLogos.forEach(name => {
                 const img = new Image();
                 img.src = `/web/images/${name}.jpg`;
@@ -646,28 +708,13 @@
                     
                     const logoSize = 28;
                     const gap = 4;
-                    const padding = 8;  // 与画布边缘的最小间距
                     const totalWidth = logos.length * logoSize + (logos.length - 1) * gap;
                     
-                    // 计算起始X坐标（略微偏右，避免遮挡曲线）
-                    let startX = lastPoint.x + 12;
+                    // 计算起始X坐标（始终放在点的右侧）
+                    const startX = lastPoint.x + 20;  // 点的右侧20px处
                     
-                    // 边界检查：确保logo不会超出画布右边界
-                    const logoRightEdge = startX + totalWidth + 8;  // +8 是背景的padding
-                    if (logoRightEdge > right - padding) {
-                        startX = right - totalWidth - 8 - padding;  // 向左调整，留出间距
-                    }
-                    
-                    // 确保Y坐标不会超出画布上下边界
-                    let centerY = lastPoint.y;
-                    const logoTopEdge = centerY - logoSize / 2 - 4;
-                    const logoBottomEdge = centerY + logoSize / 2 + 4;
-                    
-                    if (logoTopEdge < top + padding) {
-                        centerY = top + logoSize / 2 + 4 + padding;
-                    } else if (logoBottomEdge > bottom - padding) {
-                        centerY = bottom - logoSize / 2 - 4 - padding;
-                    }
+                    // Y坐标使用端点位置
+                    const centerY = lastPoint.y;
                     
                     // 绘制背景（半透明黑色，增强可读性）
                     ctx.save();
@@ -857,9 +904,27 @@
                 
                 // Add trade markers [v2.0] - Color-coded arrows for groups and individual traders
                 console.log('🎨 [v2.0] Rendering trade markers, count:', data.trade_markers?.length || 0);
+                
+                // 🔍 校验 Hyperliquid 交易捕获情况
+                const hlMarkers = data.trade_markers?.filter(t => t.platform && t.platform.includes('Hyperliquid')) || [];
+                const asterMarkers = data.trade_markers?.filter(t => t.platform && t.platform.includes('Aster')) || [];
+                console.log(`📊 [Platform Stats] Hyperliquid: ${hlMarkers.length} trades, Aster: ${asterMarkers.length} trades`);
+                if (hlMarkers.length > 0) {
+                    console.log('✅ Hyperliquid trades captured:', hlMarkers);
+                } else {
+                    console.warn('⚠️ No Hyperliquid trades found!');
+                }
+                
                 if (data.trade_markers && data.trade_markers.length > 0) {
                     const markers = data.trade_markers.map(trade => {
-                        console.log('🔍 [DEBUG] trade.group =', trade.group, 'trade.platform =', trade.platform, 'trade.action =', trade.action, 'trade.side =', trade.side);
+                        console.log('🔍 [DEBUG] trade.group =', trade.group, 'trade.platform =', trade.platform, 'trade.action =', trade.action, 'trade.side =', trade.side, 'trade.price =', trade.price);
+                        
+                        // ⚠️ 跳过价格为0的交易标记（无效数据）
+                        if (!trade.price || trade.price === 0) {
+                            console.warn('⚠️ Skipping trade marker with invalid price:', trade);
+                            return null;
+                        }
+                        
                         const isOpen = trade.action === 'open' || trade.action === 'OPEN';
                         
                         // Color scheme mapping
@@ -900,19 +965,27 @@
                         
                         console.log(`  Marker: ${colorName} ${shape} - ${groupName} ${isOpen ? 'Open' : 'Close'}`);
                         
-                        // Build label text with platform logo
+                        // Build label text with platform identification
                         const actionText = isOpen ? 'Open' : 'Close';
                         const sideText = trade.side === 'long' ? 'Long' : 'Short';
-                        // Platform logo: Hyperliquid -> 🔷, Aster -> ⭐
-                        const platform = trade.platform.includes('Hyperliquid') ? 'HL' : 
-                                         trade.platform.includes('Aster') ? 'AS' : 
-                                         'N/A';
+                        
+                        // Platform identification: Hyperliquid -> 🔷HL, Aster -> ⭐AS
+                        let platformLabel = '';
+                        if (trade.platform && trade.platform.includes('Hyperliquid')) {
+                            platformLabel = '🔷HL';
+                        } else if (trade.platform && trade.platform.includes('Aster')) {
+                            platformLabel = '⭐AS';
+                        } else {
+                            platformLabel = '❓' + (trade.platform || 'N/A');
+                            console.warn('⚠️ Unknown platform for trade:', trade);
+                        }
+                        
                         // For individual traders, use AI name; for groups, use group name
                         const displayName = groupName.includes('-Solo') ? 
                                             groupName.replace('-Solo-Aster', '').replace('-Solo', '') : 
                                             groupName.replace('组', '');
                         
-                        let text = `${platform} ${displayName} ${actionText} ${sideText}`;
+                        let text = `${platformLabel} ${displayName} ${actionText} ${sideText}`;
                         if (!isOpen && trade.pnl !== 0) {
                             text += ` P/L: $${trade.pnl.toFixed(2)}`;
                         }
@@ -924,8 +997,9 @@
                             shape: shape,
                             text: text
                         };
-                    });
+                    }).filter(m => m !== null);  // 过滤掉无效的标记
                     
+                    console.log(`📍 [K-line Markers] Valid markers to display: ${markers.length}`);
                     candlestickSeries.setMarkers(markers);
                 }
                 
@@ -959,27 +1033,47 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'Alpha Team',
+                            label: 'Alpha-HL',
                             data: [],
-                            borderColor: 'rgb(34, 197, 94)',  // 鲜绿色
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            borderColor: 'rgb(16, 185, 129)',  // 翠绿色 #10B981
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             tension: 0.4,
-                            borderWidth: 3
+                            borderWidth: 3,
+                            platform: 'hyperliquid'
                         },
                         {
-                            label: 'Beta Team',
+                            label: 'Alpha-Aster',
                             data: [],
-                            borderColor: 'rgb(59, 130, 246)',  // 蓝色
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderColor: 'rgb(52, 211, 153)',  // 青绿色 #34D399
+                            backgroundColor: 'rgba(52, 211, 153, 0.1)',
                             tension: 0.4,
-                            borderWidth: 3
+                            borderWidth: 3,
+                            platform: 'aster'
+                        },
+                        {
+                            label: 'Beta-HL',
+                            data: [],
+                            borderColor: 'rgb(37, 99, 235)',  // 宝蓝色 #2563EB
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 3,
+                            platform: 'hyperliquid'
+                        },
+                        {
+                            label: 'Beta-Aster',
+                            data: [],
+                            borderColor: 'rgb(56, 189, 248)',  // 天蓝色 #38BDF8
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 3,
+                            platform: 'aster'
                         },
                         // 独立AI交易者曲线
                         {
                             label: 'DeepSeek-Solo',
                             data: [],
-                            borderColor: 'rgb(147, 51, 234)',  // 紫色
-                            backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                            borderColor: 'rgb(168, 85, 247)',  // 亮紫色 #A855F7
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
                             borderDash: [5, 5]  // 虚线
@@ -987,7 +1081,7 @@
                         {
                             label: 'Claude-Solo',
                             data: [],
-                            borderColor: 'rgb(236, 72, 153)',  // 粉色
+                            borderColor: 'rgb(236, 72, 153)',  // 品红色 #EC4899
                             backgroundColor: 'rgba(236, 72, 153, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
@@ -996,8 +1090,8 @@
                         {
                             label: 'Grok-Solo',
                             data: [],
-                            borderColor: 'rgb(251, 146, 60)',  // 橙色
-                            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                            borderColor: 'rgb(249, 115, 22)',  // 鲜橙色 #F97316
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
                             borderDash: [5, 5]
@@ -1005,8 +1099,8 @@
                         {
                             label: 'GPT-Solo',
                             data: [],
-                            borderColor: 'rgb(14, 165, 233)',  // 天蓝色
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            borderColor: 'rgb(6, 182, 212)',  // 青蓝色 #06B6D4
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
                             borderDash: [5, 5]
@@ -1014,8 +1108,8 @@
                         {
                             label: 'Gemini-Solo',
                             data: [],
-                            borderColor: 'rgb(234, 179, 8)',  // 黄色
-                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                            borderColor: 'rgb(245, 158, 11)',  // 金黄色 #F59E0B
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
                             borderDash: [5, 5]
@@ -1023,8 +1117,8 @@
                         {
                             label: 'Qwen-Solo',
                             data: [],
-                            borderColor: 'rgb(244, 63, 94)',  // 红色
-                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            borderColor: 'rgb(239, 68, 68)',  // 鲜红色 #EF4444
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             tension: 0.4,
                             borderWidth: 2,
                             borderDash: [5, 5]
@@ -1035,6 +1129,11 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            right: 60  // 为右侧的logo预留空间
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false  // 禁用默认图例
@@ -1106,34 +1205,34 @@
                 console.log('🔍 [DEBUG] Beta Group 完整数据:', betaGroup);
                 console.log('🔍 [DEBUG] Beta platforms keys:', Object.keys(betaGroup.platforms || {}));
                 
-                // 获取Aster平台数据（支持多种可能的key格式）
+                // 获取各平台数据
                 const alphaPlatforms = alphaGroup.platforms || {};
                 const betaPlatforms = betaGroup.platforms || {};
                 
-                // 尝试多种可能的key格式
-                const alphaAster = alphaPlatforms['Alpha组-Aster'] || 
-                                   alphaPlatforms['Alpha-Aster'] || 
-                                   alphaPlatforms['Aster'] ||
-                                   Object.values(alphaPlatforms).find(p => p && p.platform === 'Aster') ||
-                                   Object.values(alphaPlatforms)[0] || // 如果只有一个平台，就用它
-                                   {};
+                // 提取 Alpha 组的两个平台数据
+                const alphaHL = alphaPlatforms['Alpha组-Hyperliquid'] || alphaPlatforms['Alpha-Hyperliquid'] || {};
+                const alphaAster = alphaPlatforms['Alpha组-Aster'] || alphaPlatforms['Alpha-Aster'] || {};
                 
-                const betaAster = betaPlatforms['Beta组-Aster'] || 
-                                  betaPlatforms['Beta-Aster'] || 
-                                  betaPlatforms['Aster'] ||
-                                  Object.values(betaPlatforms).find(p => p && p.platform === 'Aster') ||
-                                  Object.values(betaPlatforms)[0] || // 如果只有一个平台，就用它
-                                  {};
+                // 提取 Beta 组的两个平台数据
+                const betaHL = betaPlatforms['Beta组-Hyperliquid'] || betaPlatforms['Beta-Hyperliquid'] || {};
+                const betaAster = betaPlatforms['Beta组-Aster'] || betaPlatforms['Beta-Aster'] || {};
                 
+                console.log('🔍 [DEBUG] Alpha HL 数据:', alphaHL);
                 console.log('🔍 [DEBUG] Alpha Aster 数据:', alphaAster);
+                console.log('🔍 [DEBUG] Beta HL 数据:', betaHL);
                 console.log('🔍 [DEBUG] Beta Aster 数据:', betaAster);
                 
-                const alphaRoi = (alphaAster && typeof alphaAster.roi === 'number') ? alphaAster.roi : 0;
-                const betaRoi = (betaAster && typeof betaAster.roi === 'number') ? betaAster.roi : 0;
+                // 计算各平台ROI
+                const alphaHLRoi = (alphaHL && typeof alphaHL.roi === 'number') ? alphaHL.roi : 0;
+                const alphaAsterRoi = (alphaAster && typeof alphaAster.roi === 'number') ? alphaAster.roi : 0;
+                const betaHLRoi = (betaHL && typeof betaHL.roi === 'number') ? betaHL.roi : 0;
+                const betaAsterRoi = (betaAster && typeof betaAster.roi === 'number') ? betaAster.roi : 0;
                 
-                // 更新AI组对抗 - 显示ROI
-                document.getElementById('alpha-total-roi').textContent = `${alphaRoi >= 0 ? '+' : ''}${alphaRoi.toFixed(2)}%`;
-                document.getElementById('beta-total-roi').textContent = `${betaRoi >= 0 ? '+' : ''}${betaRoi.toFixed(2)}%`;
+                // 更新 Alpha/Beta 组各平台的 ROI 显示
+                document.getElementById('alpha-hl-roi').textContent = `${alphaHLRoi >= 0 ? '+' : ''}${alphaHLRoi.toFixed(2)}%`;
+                document.getElementById('alpha-aster-roi').textContent = `${alphaAsterRoi >= 0 ? '+' : ''}${alphaAsterRoi.toFixed(2)}%`;
+                document.getElementById('beta-hl-roi').textContent = `${betaHLRoi >= 0 ? '+' : ''}${betaHLRoi.toFixed(2)}%`;
+                document.getElementById('beta-aster-roi').textContent = `${betaAsterRoi >= 0 ? '+' : ''}${betaAsterRoi.toFixed(2)}%`;
                 
                 // 获取独立AI交易者的ROI数据
                 const individualTraders = data.individual_traders || [];
@@ -1190,9 +1289,11 @@
                 });
                 
                 // 输出数据对比信息
-                console.log('📊 AI Teams Performance (Aster Platform):');
-                console.log(`  Alpha ROI: ${alphaRoi.toFixed(2)}%`);
-                console.log(`  Beta ROI: ${betaRoi.toFixed(2)}%`);
+                console.log('📊 AI Teams Performance (Multi-Platform):');
+                console.log(`  Alpha-HL ROI: ${alphaHLRoi.toFixed(2)}%`);
+                console.log(`  Alpha-Aster ROI: ${alphaAsterRoi.toFixed(2)}%`);
+                console.log(`  Beta-HL ROI: ${betaHLRoi.toFixed(2)}%`);
+                console.log(`  Beta-Aster ROI: ${betaAsterRoi.toFixed(2)}%`);
                 console.log('📊 Solo AI Traders Performance:');
                 Object.keys(soloRois).forEach(ai => {
                     console.log(`  ${ai}: ${soloRois[ai].toFixed(2)}%`);
@@ -1216,6 +1317,18 @@
                 console.log(`  Alpha: $${alphaBalance.toFixed(2)} (balance字段: ${alphaAster?.balance}, from platforms: ${Object.keys(alphaPlatforms).join(', ') || 'none'})`);
                 console.log(`  Beta: $${betaBalance.toFixed(2)} (balance字段: ${betaAster?.balance}, from platforms: ${Object.keys(betaPlatforms).join(', ') || 'none'})`);
                 
+                // 获取 Alpha/Beta 各平台余额
+                const alphaHLBalance = alphaHL?.balance || 200;
+                const alphaAsterBalance = alphaAster?.balance || 200;
+                const betaHLBalance = betaHL?.balance || 200;
+                const betaAsterBalance = betaAster?.balance || 200;
+                
+                console.log(`📊 Alpha/Beta 各平台余额:`);
+                console.log(`  Alpha-HL: $${alphaHLBalance.toFixed(2)}`);
+                console.log(`  Alpha-Aster: $${alphaAsterBalance.toFixed(2)}`);
+                console.log(`  Beta-HL: $${betaHLBalance.toFixed(2)}`);
+                console.log(`  Beta-Aster: $${betaAsterBalance.toFixed(2)}`);
+                
                 // 获取独立AI交易者的余额数据（复用前面获取的individualTraders和soloRois）
                 const traderBalances = {};
                 const traderRois = soloRois; // 复用前面获取的ROI数据
@@ -1235,28 +1348,42 @@
                 });
                 
                 // 更新图例标签（用于tooltip）
-                equityChart.data.datasets[0].label = `Alpha Team`;
-                equityChart.data.datasets[1].label = `Beta Team`;
-                equityChart.data.datasets[2].label = `DeepSeek-Solo`;
-                equityChart.data.datasets[3].label = `Claude-Solo`;
-                equityChart.data.datasets[4].label = `Grok-Solo`;
-                equityChart.data.datasets[5].label = `GPT-Solo`;
-                equityChart.data.datasets[6].label = `Gemini-Solo`;
-                equityChart.data.datasets[7].label = `Qwen-Solo`;
+                equityChart.data.datasets[0].label = `Alpha-HL`;
+                equityChart.data.datasets[1].label = `Alpha-Aster`;
+                equityChart.data.datasets[2].label = `Beta-HL`;
+                equityChart.data.datasets[3].label = `Beta-Aster`;
+                equityChart.data.datasets[4].label = `DeepSeek-Solo`;
+                equityChart.data.datasets[5].label = `Claude-Solo`;
+                equityChart.data.datasets[6].label = `Grok-Solo`;
+                equityChart.data.datasets[7].label = `GPT-Solo`;
+                equityChart.data.datasets[8].label = `Gemini-Solo`;
+                equityChart.data.datasets[9].label = `Qwen-Solo`;
                 
-                // 构建图例数据
+                // 构建图例数据（包含 4 个平台曲线）
                 const legendItems = [
                     {
-                        label: 'Alpha Team',
+                        label: 'Alpha-HL',
                         color: 'rgb(34, 197, 94)',
-                        roi: alphaRoi,
-                        aiLogos: ['deepseek', 'claude', 'grok']
+                        roi: alphaHLRoi,
+                        platform: 'hyperliquid'
                     },
                     {
-                        label: 'Beta Team',
+                        label: 'Alpha-Aster',
+                        color: 'rgb(52, 211, 153)',
+                        roi: alphaAsterRoi,
+                        platform: 'aster'
+                    },
+                    {
+                        label: 'Beta-HL',
                         color: 'rgb(59, 130, 246)',
-                        roi: betaRoi,
-                        aiLogos: ['gpt4', 'gemini', 'qwen']
+                        roi: betaHLRoi,
+                        platform: 'hyperliquid'
+                    },
+                    {
+                        label: 'Beta-Aster',
+                        color: 'rgb(96, 165, 250)',
+                        roi: betaAsterRoi,
+                        platform: 'aster'
                     }
                 ];
                 
@@ -1308,15 +1435,18 @@
                     
                     // 添加新周期的第一个数据点（决策点）
                     equityChart.data.labels.push(currentTime);
-                    equityChart.data.datasets[0].data.push(alphaBalance);
-                    equityChart.data.datasets[1].data.push(betaBalance);
+                    // Alpha/Beta 各平台数据
+                    equityChart.data.datasets[0].data.push(alphaHLBalance);
+                    equityChart.data.datasets[1].data.push(alphaAsterBalance);
+                    equityChart.data.datasets[2].data.push(betaHLBalance);
+                    equityChart.data.datasets[3].data.push(betaAsterBalance);
                     // 独立AI如果没有余额数据，使用初始余额200 USDT
-                    equityChart.data.datasets[2].data.push(traderBalances['DeepSeek'] || 200);
-                    equityChart.data.datasets[3].data.push(traderBalances['Claude'] || 200);
-                    equityChart.data.datasets[4].data.push(traderBalances['Grok'] || 200);
-                    equityChart.data.datasets[5].data.push(traderBalances['GPT'] || 200);
-                    equityChart.data.datasets[6].data.push(traderBalances['Gemini'] || 200);
-                    equityChart.data.datasets[7].data.push(traderBalances['Qwen'] || 200);
+                    equityChart.data.datasets[4].data.push(traderBalances['DeepSeek'] || 200);
+                    equityChart.data.datasets[5].data.push(traderBalances['Claude'] || 200);
+                    equityChart.data.datasets[6].data.push(traderBalances['Grok'] || 200);
+                    equityChart.data.datasets[7].data.push(traderBalances['GPT'] || 200);
+                    equityChart.data.datasets[8].data.push(traderBalances['Gemini'] || 200);
+                    equityChart.data.datasets[9].data.push(traderBalances['Qwen'] || 200);
                     
                 } else {
                     // 同一周期内：更新或添加临时点
@@ -1324,35 +1454,41 @@
                         // 首次加载，添加初始点
                         console.log('📊 First time loading curve data');
                         equityChart.data.labels.push(currentTime);
-                        equityChart.data.datasets[0].data.push(alphaBalance);
-                        equityChart.data.datasets[1].data.push(betaBalance);
+                        // Alpha/Beta 各平台数据
+                        equityChart.data.datasets[0].data.push(alphaHLBalance);
+                        equityChart.data.datasets[1].data.push(alphaAsterBalance);
+                        equityChart.data.datasets[2].data.push(betaHLBalance);
+                        equityChart.data.datasets[3].data.push(betaAsterBalance);
                         // 独立AI如果没有余额数据，使用初始余额200 USDT
-                        equityChart.data.datasets[2].data.push(traderBalances['DeepSeek'] || 200);
-                        equityChart.data.datasets[3].data.push(traderBalances['Claude'] || 200);
-                        equityChart.data.datasets[4].data.push(traderBalances['Grok'] || 200);
-                        equityChart.data.datasets[5].data.push(traderBalances['GPT'] || 200);
-                        equityChart.data.datasets[6].data.push(traderBalances['Gemini'] || 200);
-                        equityChart.data.datasets[7].data.push(traderBalances['Qwen'] || 200);
+                        equityChart.data.datasets[4].data.push(traderBalances['DeepSeek'] || 200);
+                        equityChart.data.datasets[5].data.push(traderBalances['Claude'] || 200);
+                        equityChart.data.datasets[6].data.push(traderBalances['Grok'] || 200);
+                        equityChart.data.datasets[7].data.push(traderBalances['GPT'] || 200);
+                        equityChart.data.datasets[8].data.push(traderBalances['Gemini'] || 200);
+                        equityChart.data.datasets[9].data.push(traderBalances['Qwen'] || 200);
                         currentPeriodStartIndex = 0;
                     } else {
                         // 更新当前周期的最后一个点（临时点）
                         const lastIndex = equityChart.data.labels.length - 1;
                         
                         console.log(`🔄 Update curve tail [${currentTime}]:`, 
-                            `Alpha: $${equityChart.data.datasets[0].data[lastIndex].toFixed(2)} → $${alphaBalance.toFixed(2)}`,
-                            `Beta: $${equityChart.data.datasets[1].data[lastIndex].toFixed(2)} → $${betaBalance.toFixed(2)}`
+                            `Alpha-HL: $${equityChart.data.datasets[0].data[lastIndex].toFixed(2)} → $${alphaHLBalance.toFixed(2)}`,
+                            `Alpha-Aster: $${equityChart.data.datasets[1].data[lastIndex].toFixed(2)} → $${alphaAsterBalance.toFixed(2)}`
                         );
                         
                         equityChart.data.labels[lastIndex] = currentTime;
-                        equityChart.data.datasets[0].data[lastIndex] = alphaBalance;
-                        equityChart.data.datasets[1].data[lastIndex] = betaBalance;
+                        // Alpha/Beta 各平台数据
+                        equityChart.data.datasets[0].data[lastIndex] = alphaHLBalance;
+                        equityChart.data.datasets[1].data[lastIndex] = alphaAsterBalance;
+                        equityChart.data.datasets[2].data[lastIndex] = betaHLBalance;
+                        equityChart.data.datasets[3].data[lastIndex] = betaAsterBalance;
                         // 独立AI如果没有余额数据，使用初始余额200 USDT
-                        equityChart.data.datasets[2].data[lastIndex] = traderBalances['DeepSeek'] || 200;
-                        equityChart.data.datasets[3].data[lastIndex] = traderBalances['Claude'] || 200;
-                        equityChart.data.datasets[4].data[lastIndex] = traderBalances['Grok'] || 200;
-                        equityChart.data.datasets[5].data[lastIndex] = traderBalances['GPT'] || 200;
-                        equityChart.data.datasets[6].data[lastIndex] = traderBalances['Gemini'] || 200;
-                        equityChart.data.datasets[7].data[lastIndex] = traderBalances['Qwen'] || 200;
+                        equityChart.data.datasets[4].data[lastIndex] = traderBalances['DeepSeek'] || 200;
+                        equityChart.data.datasets[5].data[lastIndex] = traderBalances['Claude'] || 200;
+                        equityChart.data.datasets[6].data[lastIndex] = traderBalances['Grok'] || 200;
+                        equityChart.data.datasets[7].data[lastIndex] = traderBalances['GPT'] || 200;
+                        equityChart.data.datasets[8].data[lastIndex] = traderBalances['Gemini'] || 200;
+                        equityChart.data.datasets[9].data[lastIndex] = traderBalances['Qwen'] || 200;
                     }
                 }
                 
@@ -1508,11 +1644,11 @@
                             </span>
                             <span class="decision-time" style="font-size: 0.85em;">${timeStr}</span>
                         </div>
-                        <div style="font-size: 0.9em; margin-bottom: 8px;">
+                        <div style="font-size: 0.9em; margin-bottom: 6px;">
                             <strong>Price:</strong> $${decision.price.toLocaleString()}
                         </div>
                         ${decision.confidence ? `
-                            <div style="font-size: 0.85em; opacity: 0.8; margin-bottom: 8px;">
+                            <div style="font-size: 0.85em; opacity: 0.8; margin-bottom: 6px;">
                                 <strong>Confidence:</strong> ${decision.confidence.toFixed(0)}%
                             </div>
                         ` : ''}
@@ -1564,17 +1700,18 @@
                             }
                         });
                         
-                        // Alpha-Aster (组初始240 USDT)
-                        equityChart.data.datasets[0].data.push(balances['Alpha组-Aster'] || 240);
-                        // Beta-Aster (组初始240 USDT)
-                        equityChart.data.datasets[1].data.push(balances['Beta组-Aster'] || 240);
+                        // Alpha/Beta 各平台数据 (组初始200 USDT)
+                        equityChart.data.datasets[0].data.push(balances['Alpha组-Hyperliquid'] || 200);
+                        equityChart.data.datasets[1].data.push(balances['Alpha组-Aster'] || 200);
+                        equityChart.data.datasets[2].data.push(balances['Beta组-Hyperliquid'] || 200);
+                        equityChart.data.datasets[3].data.push(balances['Beta组-Aster'] || 200);
                         // 独立AI交易者 (初始200 USDT)
-                        equityChart.data.datasets[2].data.push(traderBalances['DeepSeek'] || 200);
-                        equityChart.data.datasets[3].data.push(traderBalances['Claude'] || 200);
-                        equityChart.data.datasets[4].data.push(traderBalances['Grok'] || 200);
-                        equityChart.data.datasets[5].data.push(traderBalances['GPT'] || 200);
-                        equityChart.data.datasets[6].data.push(traderBalances['Gemini'] || 200);
-                        equityChart.data.datasets[7].data.push(traderBalances['Qwen'] || 200);
+                        equityChart.data.datasets[4].data.push(traderBalances['DeepSeek'] || 200);
+                        equityChart.data.datasets[5].data.push(traderBalances['Claude'] || 200);
+                        equityChart.data.datasets[6].data.push(traderBalances['Grok'] || 200);
+                        equityChart.data.datasets[7].data.push(traderBalances['GPT'] || 200);
+                        equityChart.data.datasets[8].data.push(traderBalances['Gemini'] || 200);
+                        equityChart.data.datasets[9].data.push(traderBalances['Qwen'] || 200);
                     });
                     
                     // 更新当前周期起始索引为最后一个数据点

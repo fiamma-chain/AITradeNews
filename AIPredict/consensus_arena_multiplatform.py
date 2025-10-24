@@ -57,24 +57,14 @@ class IndividualAITrader:
         # 创建多平台交易管理器
         self.multi_trader = MultiPlatformTrader()
         
-        # 根据配置初始化各个平台
-        enabled_platforms = get_enabled_platforms()
-        logger.info(f"[{name}] 启用的交易平台: {enabled_platforms}")
+        # 🎯 独立AI交易者：只在 Aster 平台下单
+        logger.info(f"[{name}] 独立AI交易者 - 仅在 Aster 平台交易")
+        client = AsterClient(private_key, settings.aster_testnet)
+        self.multi_trader.add_platform(client, f"{name}-Aster")
         
-        for platform in enabled_platforms:
-            if platform == "hyperliquid":
-                client = HyperliquidClient(private_key, settings.hyperliquid_testnet)
-                self.multi_trader.add_platform(client, f"{name}-Hyperliquid")
-            elif platform == "aster":
-                client = AsterClient(private_key, settings.aster_testnet)
-                self.multi_trader.add_platform(client, f"{name}-Aster")
-        
-        # 创建用于获取市场数据的 Hyperliquid 客户端（即使不用于交易）
-        if "hyperliquid" not in enabled_platforms:
-            logger.info(f"[{name}] 📊 创建 Hyperliquid 数据源客户端（仅用于获取市场数据）")
-            self.data_source_client = HyperliquidClient(private_key, settings.hyperliquid_testnet)
-        else:
-            self.data_source_client = None
+        # 创建用于获取市场数据的 Hyperliquid 客户端（不用于交易）
+        logger.info(f"[{name}] 📊 创建 Hyperliquid 数据源客户端（仅用于获取市场数据）")
+        self.data_source_client = HyperliquidClient(private_key, settings.hyperliquid_testnet)
         
         # 保存用于获取市场数据的客户端
         if self.data_source_client:
@@ -241,9 +231,9 @@ class AIGroup:
         # 创建多平台交易管理器
         self.multi_trader = MultiPlatformTrader()
         
-        # 根据配置初始化各个平台（使用平台级别的 testnet 配置）
+        # 🎯 AI共识组（Alpha/Beta）：在两个平台下单
         enabled_platforms = get_enabled_platforms()
-        logger.info(f"[{name}] 启用的交易平台: {enabled_platforms}")
+        logger.info(f"[{name}] AI共识组 - 在以下平台交易: {enabled_platforms}")
         
         for platform in enabled_platforms:
             if platform == "hyperliquid":
@@ -1094,6 +1084,11 @@ async def get_chart_data(
                         })
                     except:
                         continue
+        
+        # 🔍 统计各平台交易数量
+        hl_count = sum(1 for m in trade_markers if 'Hyperliquid' in m.get('platform', ''))
+        aster_count = sum(1 for m in trade_markers if 'Aster' in m.get('platform', ''))
+        logger.info(f"📊 [K-line Markers] Total: {len(trade_markers)}, Hyperliquid: {hl_count}, Aster: {aster_count}")
         
         return {
             "candles": candles,
