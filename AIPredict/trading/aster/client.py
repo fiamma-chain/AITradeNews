@@ -453,6 +453,41 @@ class AsterClient(BaseExchangeClient):
                 coin, size, round_down=(not reduce_only)
             )
             
+            # 🔍 重要：精度舍入后重新检查保证金
+            if not reduce_only and leverage is not None:
+                # 使用舍入后的数量重新计算保证金
+                final_position_value_check = size_rounded * actual_price
+                final_margin_check = final_position_value_check / leverage
+                min_margin = settings.ai_min_margin  # 使用环境配置
+                
+                if final_margin_check < min_margin:
+                    # 精度舍入导致保证金不足，需要增加数量
+                    logger.warning(
+                        f"⚠️ [Aster] 精度舍入后保证金不足，调整数量\n"
+                        f"   原始数量: {size:.6f}\n"
+                        f"   舍入数量: {size_rounded:.6f}\n"
+                        f"   舍入后保证金: ${final_margin_check:.2f}\n"
+                        f"   最小保证金: ${min_margin:.2f} (配置: AI_MIN_MARGIN)"
+                    )
+                    
+                    # 重新计算满足最小保证金的数量
+                    required_position_value = min_margin * leverage
+                    size_rounded = required_position_value / actual_price
+                    
+                    # 再次应用精度（这次向上舍入以确保满足最小保证金）
+                    size_rounded, _ = precision_config.format_aster_quantity(
+                        coin, size_rounded, round_down=False  # 向上舍入
+                    )
+                    
+                    # 最终验证
+                    final_check_value = size_rounded * actual_price
+                    final_check_margin = final_check_value / leverage
+                    logger.info(
+                        f"   ✅ 调整完成\n"
+                        f"   调整后数量: {size_rounded:.6f}\n"
+                        f"   调整后保证金: ${final_check_margin:.2f}"
+                    )
+            
             # 处理价格
             if price is None:
                 # 市价单
