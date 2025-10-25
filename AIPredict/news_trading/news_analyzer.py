@@ -233,6 +233,10 @@ Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only tr
                     key, value = line.split(":", 1)
                     parsed[key.strip().upper()] = value.strip()
             
+            # 🔍 调试日志：记录AI原始响应
+            logger.debug(f"🔍 [{self.ai_name}] 原始响应:\n{response}")
+            logger.debug(f"🔍 [{self.ai_name}] 解析结果: {parsed}")
+            
             # 检查是否应该交易
             should_trade = parsed.get("TRADE", "NO").upper() == "YES"
             
@@ -240,13 +244,25 @@ Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only tr
                 return None
             
             # 解析交易参数
-            direction = parsed.get("DIRECTION", "LONG").upper()
+            direction_raw = parsed.get("DIRECTION", "LONG").upper()
             leverage = int(float(parsed.get("LEVERAGE", 20)))
             position_size_pct = float(parsed.get("POSITION_SIZE_PCT", 0.2))  # 默认20%
             stop_loss = float(parsed.get("STOP_LOSS", 0.10))
             take_profit = float(parsed.get("TAKE_PROFIT", 0.25))
             confidence = float(parsed.get("CONFIDENCE", 50))
             reasoning = parsed.get("REASONING", "AI analysis completed")
+            
+            # 解析方向（支持多种格式）
+            # LONG/BUY -> long, SHORT/SELL -> short
+            if "LONG" in direction_raw or "BUY" in direction_raw:
+                direction = "long"
+            elif "SHORT" in direction_raw or "SELL" in direction_raw:
+                direction = "short"
+            else:
+                logger.warning(f"⚠️ [{self.ai_name}] 无法识别方向: {direction_raw}，默认为LONG")
+                direction = "long"
+            
+            logger.info(f"📍 [{self.ai_name}] 方向解析: {direction_raw} → {direction}")
             
             # 限制范围
             leverage = max(10, min(leverage, 40))
@@ -257,7 +273,7 @@ Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only tr
             # 注意：这里的margin字段现在表示"仓位比例"，实际保证金将在执行时根据账户余额计算
             return TradingStrategy(
                 should_trade=True,
-                direction="long" if direction == "LONG" else "short",
+                direction=direction,
                 leverage=leverage,
                 margin=position_size_pct,  # 存储仓位比例，不是实际金额
                 stop_loss_pct=stop_loss,
