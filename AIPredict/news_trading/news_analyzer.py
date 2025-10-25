@@ -98,43 +98,12 @@ class NewsAnalyzer:
             return None
     
     def _create_analysis_prompt(self, message: ListingMessage) -> str:
-        """构建AI分析提示词"""
-        return f"""You are a cryptocurrency trading expert analyzing a listing announcement.
+        """构建AI分析提示词（极速版）"""
+        return f"""Crypto listing: {message.coin_symbol} on {message.source}
+Reliability: {message.reliability_score:.0%}
+Message: {message.raw_message[:150]}
 
-📢 **Listing Announcement**
-
-Source: {message.source}
-Coin: {message.coin_symbol}
-Message: {message.raw_message}
-Time: {message.timestamp.isoformat()}
-Reliability Score: {message.reliability_score:.2f}
-
-**Your Task:**
-Analyze this listing news and determine:
-1. Should we trade based on this news? (YES/NO)
-2. If YES:
-   - Trading direction: LONG or SHORT
-   - Recommended leverage: 10-40x (based on reliability and market conditions)
-   - Position size: 10-50% of account balance (based on your confidence)
-   - Stop loss: 5-20%
-   - Take profit: 10-50%
-   - Your confidence level: 0-100
-
-**Position Sizing Formula:**
-- Confidence 50-60%: Use 10% of account balance
-- Confidence 60-70%: Use 20% of account balance
-- Confidence 70-80%: Use 30% of account balance
-- Confidence 80-90%: Use 40% of account balance
-- Confidence 90-100%: Use 50% of account balance
-
-**Key Factors to Consider:**
-- **Source reliability**: {message.reliability_score:.0%}
-- **Coin type**: Is it a major coin (BTC/ETH/SOL) or a new project?
-- **Market timing**: Listing news typically causes initial pump
-- **Risk level**: Higher leverage = higher risk
-- **Historical patterns**: New listings usually see 10-100% volatility in first hours
-
-**Response Format (STRICTLY follow this):**
+Decide FAST:
 TRADE: YES/NO
 DIRECTION: LONG/SHORT
 LEVERAGE: [10-40]
@@ -142,10 +111,9 @@ POSITION_SIZE_PCT: [0.10-0.50]
 STOP_LOSS: [0.05-0.20]
 TAKE_PROFIT: [0.10-0.50]
 CONFIDENCE: [0-100]
-REASONING: [Your detailed analysis in 50-100 words]
+REASONING: [max 10 words]
 
-**Note**: Be conservative. Only recommend trading if confidence is above 60%.
-Position size should align with your confidence level.
+Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only trade if confidence>60%.
 """
     
     async def _simple_ai_call(self, prompt: str) -> Optional[str]:
@@ -170,7 +138,7 @@ Position size should align with your confidence level.
                             },
                             json={
                                 "model": self.ai_trader.model,
-                                "max_tokens": 500,
+                                "max_tokens": 100,  # 极速模式：最小token
                                 "messages": [{"role": "user", "content": prompt}]
                             }
                         )
@@ -190,7 +158,7 @@ Position size should align with your confidence level.
                                 "model": self.ai_trader.model,
                                 "messages": [{"role": "user", "content": prompt}],
                                 "temperature": 0.7,
-                                "max_tokens": 500
+                                "max_tokens": 100  # 极速模式：最小token
                             }
                         )
                         if response.status_code == 200:
@@ -209,7 +177,7 @@ Position size should align with your confidence level.
                                 "model": self.ai_trader.model,
                                 "messages": [{"role": "user", "content": prompt}],
                                 "temperature": 0.7,
-                                "max_tokens": 500
+                                "max_tokens": 100  # 极速模式：最小token
                             }
                         )
                         if response.status_code == 200:
@@ -223,12 +191,30 @@ Position size should align with your confidence level.
                             headers={"Content-Type": "application/json"},
                             json={
                                 "contents": [{"parts": [{"text": prompt}]}],
-                                "generationConfig": {"maxOutputTokens": 500, "temperature": 0.7}
+                                "generationConfig": {"maxOutputTokens": 2000, "temperature": 0.7}  # Gemini 2.5 Pro是推理模型，需要大量tokens（思考+输出）
                             }
                         )
                         if response.status_code == 200:
                             result = response.json()
-                            return result["candidates"][0]["content"]["parts"][0]["text"]
+                            # Gemini 2.5 Pro有不同的响应结构
+                            try:
+                                candidate = result["candidates"][0]
+                                content = candidate.get("content", {})
+                                
+                                # 检查是否有parts（标准格式）
+                                if "parts" in content and len(content["parts"]) > 0:
+                                    return content["parts"][0]["text"]
+                                
+                                # Gemini 2.5 Pro可能没有parts，只有role
+                                # 这种情况下所有token都用于思考，没有实际输出
+                                logger.warning(f"⚠️  [{self.ai_name}] Gemini响应无文本输出（可能全是思考token）")
+                                logger.debug(f"Gemini响应结构: {result}")
+                                return None
+                            
+                            except (KeyError, IndexError) as e:
+                                logger.error(f"❌ [{self.ai_name}] Gemini响应解析失败: {e}")
+                                logger.debug(f"原始响应: {result}")
+                                return None
             
             return None
         
@@ -306,7 +292,11 @@ def create_news_analyzer(ai_name: str, api_key: str) -> Optional[NewsAnalyzer]:
             return NewsAnalyzer(trader, "Claude")
         
         elif ai_name_lower in ["gpt", "gpt4"]:
-            trader = GPTTrader(api_key=api_key)
+            from config.settings import settings
+            trader = GPTTrader(
+                api_key=api_key,
+                model=settings.gpt_model
+            )
             return NewsAnalyzer(trader, "GPT-4")
         
         elif ai_name_lower == "deepseek":
@@ -314,15 +304,28 @@ def create_news_analyzer(ai_name: str, api_key: str) -> Optional[NewsAnalyzer]:
             return NewsAnalyzer(trader, "DeepSeek")
         
         elif ai_name_lower == "gemini":
-            trader = GeminiTrader(api_key=api_key)
+            from config.settings import settings
+            trader = GeminiTrader(
+                api_key=api_key,
+                model=settings.gemini_model
+            )
             return NewsAnalyzer(trader, "Gemini")
         
         elif ai_name_lower == "grok":
-            trader = GrokTrader(api_key=api_key)
+            from config.settings import settings
+            trader = GrokTrader(
+                api_key=api_key,
+                model=settings.grok_model
+            )
             return NewsAnalyzer(trader, "Grok")
         
         elif ai_name_lower == "qwen":
-            trader = QwenTrader(api_key=api_key)
+            from config.settings import settings
+            trader = QwenTrader(
+                api_key=api_key,
+                model=settings.qwen_model,
+                use_international=settings.qwen_use_international
+            )
             return NewsAnalyzer(trader, "Qwen")
         
         else:

@@ -37,10 +37,12 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     gpt_model: str = "gpt-4o"
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash-exp"  # 快速模型，适合交易决策
     qwen_api_key: str = ""
     qwen_model: str = "qwen-turbo"  # qwen-turbo, qwen-max, qwen-plus
     qwen_use_international: bool = False  # True: 国际版, False: 国内版
     grok_api_key: str = ""
+    grok_model: str = "grok-4-fast-non-reasoning"  # 快速版本（比标准版快9倍）
     deepseek_api_key: str = ""
     
     # AI 交易配置

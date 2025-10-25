@@ -10,7 +10,7 @@ from .base_ai import AITradingModel, TradingDecision
 class GrokTrader(AITradingModel):
     """Grok AI 交易员"""
     
-    def __init__(self, api_key: str, model: str = "grok-4", **kwargs):
+    def __init__(self, api_key: str, model: str = "grok-4-fast-non-reasoning", **kwargs):
         """
         初始化 Grok 交易员
         

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class GeminiTrader(AITradingModel):
     """Gemini AI 交易员"""
     
-    def __init__(self, api_key: str, model: str = "gemini-2.5-pro", **kwargs):
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-exp", **kwargs):
         """
         初始化 Gemini 交易员
         

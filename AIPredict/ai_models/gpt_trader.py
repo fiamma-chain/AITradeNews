@@ -10,7 +10,7 @@ from .base_ai import AITradingModel, TradingDecision
 class GPTTrader(AITradingModel):
     """GPT AI 交易员"""
     
-    def __init__(self, api_key: str, model: str = "gpt-5", **kwargs):
+    def __init__(self, api_key: str, model: str = "gpt-4o", **kwargs):
         """
         初始化 GPT 交易员
         
