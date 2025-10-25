@@ -927,7 +927,32 @@
                         
                         const isOpen = trade.action === 'open' || trade.action === 'OPEN';
                         
-                        // Color scheme mapping
+                        // 🚀 特殊处理：消息驱动交易
+                        if (trade.is_news_trade) {
+                            const actionText = isOpen ? 'Open' : 'Close';
+                            const sideText = trade.side === 'long' ? 'Long' : 'Short';
+                            
+                            let text = `🚀 ${trade.ai_name || 'News'} ${actionText} ${sideText}`;
+                            if (trade.leverage) {
+                                text += ` ${trade.leverage}x`;
+                            }
+                            if (!isOpen && trade.pnl !== 0) {
+                                text += ` P/L: $${trade.pnl.toFixed(2)}`;
+                            }
+                            if (trade.source) {
+                                text += ` (${trade.source})`;
+                            }
+                            
+                            return {
+                                time: trade.time / 1000,
+                                position: isOpen ? 'belowBar' : 'aboveBar',
+                                color: '#ff1493',  // Deep Pink for news trades
+                                shape: isOpen ? 'arrowUp' : 'arrowDown',
+                                text: text
+                            };
+                        }
+                        
+                        // Color scheme mapping for regular trades
                         let color, colorName;
                         const groupName = trade.group;
                         

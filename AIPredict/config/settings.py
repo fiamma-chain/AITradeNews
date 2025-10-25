@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     gpt_model: str = "gpt-4o"
     gemini_api_key: str = ""
     qwen_api_key: str = ""
+    qwen_model: str = "qwen-turbo"  # qwen-turbo, qwen-max, qwen-plus
+    qwen_use_international: bool = False  # True: 国际版, False: 国内版
     grok_api_key: str = ""
     deepseek_api_key: str = ""
     
@@ -74,6 +76,14 @@ class Settings(BaseSettings):
     individual_gpt_private_key: str = ""
     individual_gemini_private_key: str = ""
     individual_qwen_private_key: str = ""
+    
+    # 消息驱动交易系统配置
+    news_trading_enabled: bool = False  # 是否启用消息驱动交易
+    news_trading_ais: str = "claude,gpt,deepseek"  # AI模式使用的AI列表，逗号分隔
+    
+    # 功能开关（性能测试）
+    enable_consensus_trading: bool = True   # 是否启用共识交易（Alpha/Beta组）
+    enable_individual_trading: bool = True  # 是否启用独立AI常规交易
     
     class Config:
         env_file = ".env"
@@ -162,5 +172,15 @@ def get_individual_traders_config():
             })
     
     return traders
+
+
+def get_news_trading_ais():
+    """获取消息驱动交易使用的AI列表"""
+    if not settings.news_trading_ais:
+        return []
+    
+    ais = [ai.strip().lower() for ai in settings.news_trading_ais.split(',')]
+    return [ai for ai in ais if ai]
+
 
 

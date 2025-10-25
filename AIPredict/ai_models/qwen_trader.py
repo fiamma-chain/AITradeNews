@@ -10,13 +10,14 @@ from .base_ai import AITradingModel, TradingDecision
 class QwenTrader(AITradingModel):
     """Qwen AI 交易员"""
     
-    def __init__(self, api_key: str, model: str = "qwen-turbo", **kwargs):
+    def __init__(self, api_key: str, model: str = "qwen-turbo", use_international: bool = False, **kwargs):
         """
         初始化 Qwen 交易员
         
         Args:
             api_key: 阿里云 API 密钥
-            model: Qwen 模型版本
+            model: Qwen 模型版本 (qwen-turbo, qwen-max, qwen-plus)
+            use_international: 是否使用国际版API (默认False为国内版)
         """
         super().__init__(
             model_name=f"Qwen ({model.split('-')[1].capitalize()})",
@@ -24,7 +25,11 @@ class QwenTrader(AITradingModel):
             **kwargs
         )
         self.model = model
-        self.api_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        # 根据是否国际版选择API端点
+        if use_international:
+            self.api_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+        else:
+            self.api_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     
     async def analyze_market(
         self,

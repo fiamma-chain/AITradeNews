@@ -22,6 +22,18 @@ from trading.kline_manager import KlineManager
 from ai_models.base_ai import TradingDecision
 from utils.redis_manager import redis_manager
 
+# 消息驱动交易系统
+from news_trading.news_handler import news_handler
+from news_trading.url_scraper import scrape_url_content
+from news_trading.message_listeners.binance_listener import (
+    create_binance_spot_listener,
+    create_binance_futures_listener,
+    create_binance_alpha_listener
+)
+from news_trading.message_listeners.upbit_listener import create_upbit_listener
+from news_trading.message_listeners.base_listener import ListingMessage
+from news_trading.config import is_supported_coin, get_news_trading_ais
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -34,6 +46,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# 全局变量 - 消息监听器
+news_listeners = []
+news_listener_tasks = []
 
 
 class IndividualAITrader:
@@ -711,10 +727,13 @@ class ConsensusArena:
                         import traceback
                         logger.error(traceback.format_exc())
                 
-                # 并行处理所有组
-                await asyncio.gather(*[process_group(group) for group in self.groups])
+                # 并行处理所有组（根据配置决定是否执行）
+                if settings.enable_consensus_trading and self.groups:
+                    await asyncio.gather(*[process_group(group) for group in self.groups])
+                elif not settings.enable_consensus_trading:
+                    logger.info("⏸️  共识交易已禁用，跳过Alpha/Beta组")
                 
-                # 并行处理所有独立AI交易者
+                # 并行处理所有独立AI交易者（根据配置决定是否执行）
                 async def process_individual_trader(trader):
                     try:
                         logger.info(f"\n{'─'*80}")
@@ -789,8 +808,10 @@ class ConsensusArena:
                         import traceback
                         logger.error(traceback.format_exc())
                 
-                if self.individual_traders:
+                if settings.enable_individual_trading and self.individual_traders:
                     await asyncio.gather(*[process_individual_trader(trader) for trader in self.individual_traders])
+                elif not settings.enable_individual_trading:
+                    logger.info("⏸️  独立AI交易已禁用，跳过独立AI")
                 
                 # 保存余额快照到 Redis
                 try:
@@ -843,8 +864,17 @@ class ConsensusArena:
         """启动系统"""
         if await self.initialize():
             self.running = True
-            logger.info("🚀 共识交易系统已启动")
-            await self.decision_loop()
+            
+            # 检查是否启用常规交易
+            if not settings.enable_consensus_trading and not settings.enable_individual_trading:
+                logger.info("🚫 常规交易已禁用（仅消息驱动模式）")
+                logger.info("📢 系统已初始化，等待消息触发...")
+                # 不运行decision_loop，保持系统存活但不交易
+                while self.running:
+                    await asyncio.sleep(60)  # 保持存活
+            else:
+                logger.info("🚀 共识交易系统已启动")
+                await self.decision_loop()
     
     async def stop(self):
         """停止系统"""
@@ -1324,6 +1354,168 @@ async def root():
 
 
 app.mount("/web", StaticFiles(directory="web"), name="web")
+
+
+# ================== 消息驱动交易API ==================
+
+@app.post("/api/news_trading/start")
+async def start_news_trading():
+    """启动消息驱动交易系统"""
+    global news_listeners, news_listener_tasks
+    
+    if news_listeners:
+        return {"message": "消息交易系统已在运行"}
+    
+    # 检查arena是否已初始化
+    if not arena or not arena.individual_traders:
+        return {"error": "Arena未启动或没有独立AI交易者"}
+    
+    try:
+        # 获取配置的AI列表
+        configured_ais = get_news_trading_ais()
+        if not configured_ais:
+            return {"error": "请在.env中配置NEWS_TRADING_AIS（如: claude,gpt,deepseek）"}
+        
+        # 准备API密钥字典
+        ai_api_keys = {
+            "claude": settings.claude_api_key,
+            "gpt": settings.openai_api_key,
+            "gpt4": settings.openai_api_key,
+            "deepseek": settings.deepseek_api_key,
+            "gemini": settings.gemini_api_key,
+            "grok": settings.grok_api_key,
+            "qwen": settings.qwen_api_key
+        }
+        
+        # 配置处理器
+        news_handler.setup(
+            individual_traders=arena.individual_traders,
+            configured_ais=configured_ais,
+            ai_api_keys=ai_api_keys
+        )
+        
+        # 创建消息监听器
+        news_listeners = [
+            create_binance_spot_listener(news_handler.handle_message),
+            create_binance_futures_listener(news_handler.handle_message),
+            create_binance_alpha_listener(news_handler.handle_message),
+            create_upbit_listener(news_handler.handle_message)
+        ]
+        
+        # 启动所有监听器
+        for listener in news_listeners:
+            task = asyncio.create_task(listener.start())
+            news_listener_tasks.append(task)
+            logger.info(f"✅ 启动监听器: {listener.__class__.__name__}")
+        
+        logger.info(f"🚀 消息交易系统已启动，激活的AI: {list(news_handler.analyzers.keys())}")
+        
+        return {
+            "message": "消息交易系统已启动",
+            "active_ais": list(news_handler.analyzers.keys()),
+            "listeners": len(news_listeners)
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 启动消息交易系统失败: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@app.post("/api/news_trading/stop")
+async def stop_news_trading():
+    """停止消息驱动交易系统"""
+    global news_listeners, news_listener_tasks
+    
+    if not news_listeners:
+        return {"message": "消息交易系统未运行"}
+    
+    try:
+        # 停止所有监听器
+        for listener in news_listeners:
+            await listener.stop()
+        
+        # 取消所有任务
+        for task in news_listener_tasks:
+            task.cancel()
+        
+        await asyncio.gather(*news_listener_tasks, return_exceptions=True)
+        
+        news_listeners = []
+        news_listener_tasks = []
+        
+        logger.info("✅ 消息交易系统已停止")
+        return {"message": "消息交易系统已停止"}
+    
+    except Exception as e:
+        logger.error(f"❌ 停止消息交易系统失败: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@app.post("/api/news_trading/submit")
+async def submit_user_news(url: str, coin: str):
+    """
+    用户提交消息
+    
+    Args:
+        url: 消息URL
+        coin: 币种符号
+    """
+    try:
+        logger.info(f"📥 收到用户提交的消息: {coin} - {url}")
+        
+        # 验证币种
+        if not is_supported_coin(coin.upper()):
+            return {
+                "success": False,
+                "error": f"不支持的币种: {coin}。请在news_trading/config.py的COIN_MAPPING中添加"
+            }
+        
+        # 爬取URL内容
+        content = await scrape_url_content(url)
+        
+        if not content:
+            return {
+                "success": False,
+                "error": "无法获取URL内容，请检查链接是否有效"
+            }
+        
+        # 构造消息
+        message = ListingMessage(
+            source="user_submitted",
+            coin_symbol=coin.upper(),
+            raw_message=content[:500] + "..." if len(content) > 500 else content,  # 显示预览
+            timestamp=datetime.now(),
+            url=url,
+            reliability_score=0.8  # 用户提交消息可靠性中等
+        )
+        
+        # 处理消息
+        await news_handler.handle_message(message)
+        
+        return {
+            "success": True,
+            "message": f"消息已提交，{len(news_handler.analyzers)}个AI正在分析",
+            "coin": coin.upper(),
+            "url": url,
+            "content_preview": content[:200] + "..." if len(content) > 200 else content
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 处理用户提交消息失败: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.get("/api/news_trading/status")
+async def get_news_trading_status():
+    """获取消息交易系统状态"""
+    return {
+        "running": len(news_listeners) > 0,
+        "active_ais": list(news_handler.analyzers.keys()) if news_handler.analyzers else [],
+        "listeners": len(news_listeners)
+    }
 
 
 if __name__ == "__main__":
