@@ -457,21 +457,7 @@
         <div class="header">
             <h1>📡 AI News Trading Monitor</h1>
             <p class="subtitle">Real-time cryptocurrency trading driven by news and AI analysis</p>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <span id="listener-status" class="status-badge status-inactive" style="cursor: default;">● Stopped</span>
-                <button id="start-btn" onclick="startNewsTrading()" 
-                        style="padding: 8px 20px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(72, 187, 120, 0.4)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    ▶️ Start Monitoring
-                </button>
-                <button id="stop-btn" onclick="stopNewsTrading()" 
-                        style="display: none; padding: 8px 20px; background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 101, 101, 0.4)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    ⏹️ Stop Monitoring
-                </button>
-            </div>
+            <span id="listener-status" class="status-badge status-inactive" style="cursor: default;">● System Ready</span>
         </div>
         
         <!-- Main Grid -->
@@ -487,14 +473,6 @@
                 </div>
                 <div id="coin-grid" class="item-grid">
                     <!-- 动态加载 -->
-                </div>
-                <!-- 用户提交入口 -->
-                <div style="margin-top: 20px; text-align: center;">
-                    <button onclick="showSubmitCoinModal()" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
-                        ➕ Submit New Coin
-                    </button>
                 </div>
             </div>
             
@@ -580,10 +558,13 @@
                         <div class="item-name">Coinbase</div>
                         <div class="item-symbol">US Market</div>
                     </div>
-                    <div class="item-card">
-                        <img src="/images/news_sources/user.png" alt="User Submit" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2230%22 fill=%22white%22%3E👤%3C/text%3E%3C/svg%3E'">
-                        <div class="item-name">User Submit</div>
-                        <div class="item-symbol">Community Input</div>
+                    <div class="item-card" onclick="showSubmitCoinModal()" style="cursor: pointer; border: 2px dashed #667eea; position: relative;"
+                         onmouseover="this.style.borderColor='#764ba2'; this.style.transform='translateY(-4px)'"
+                         onmouseout="this.style.borderColor='#667eea'; this.style.transform='translateY(0)'"
+                         title="Click to submit news or project link">
+                        <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22 rx=%228%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2236%22 fill=%22white%22%3E➕%3C/text%3E%3C/svg%3E" alt="User Submit" class="item-logo">
+                        <div class="item-name" style="color: #667eea;">Submit Link</div>
+                        <div class="item-symbol" style="color: #a0aec0;">Community Input</div>
                     </div>
                 </div>
             </div>
@@ -654,22 +635,8 @@
                 const statusResponse = await fetch('/api/news_trading/status');
                 const statusData = await statusResponse.json();
                 
-                // 更新监听器状态和按钮
-                const listenerBadge = document.getElementById('listener-status');
-                const startBtn = document.getElementById('start-btn');
-                const stopBtn = document.getElementById('stop-btn');
-                
-                if (statusData.running) {
-                    listenerBadge.className = 'status-badge status-active';
-                    listenerBadge.textContent = '● Listening';
-                    startBtn.style.display = 'none';
-                    stopBtn.style.display = 'block';
-                } else {
-                    listenerBadge.className = 'status-badge status-inactive';
-                    listenerBadge.textContent = '● Stopped';
-                    startBtn.style.display = 'block';
-                    stopBtn.style.display = 'none';
-                }
+                // 更新监听器状态（保持当前显示）
+                // 状态由toggleCoinMonitor函数管理
                 
                 // 加载监控的币种列表
                 const coinsResponse = await fetch('/api/news_trading/coins');
@@ -680,10 +647,21 @@
                     
                     const coinGrid = document.getElementById('coin-grid');
                     coinGrid.innerHTML = coinsData.coins.map(coin => `
-                        <div class="item-card coin-card" onclick="showCoinProfile('${coin.symbol}')" title="Click to view ${coin.name} details">
-                            <img src="${coin.logo}" alt="${coin.symbol}" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2224%22 fill=%22white%22%3E${coin.symbol.substring(0,2)}%3C/text%3E%3C/svg%3E'">
-                            <div class="item-name">${coin.symbol}</div>
-                            <div class="item-symbol">${coin.name}</div>
+                        <div class="item-card coin-card" style="position: relative; padding-bottom: 50px;">
+                            <div onclick="showCoinProfile('${coin.symbol}')" style="cursor: pointer;" title="Click to view ${coin.name} details">
+                                <img src="${coin.logo}" alt="${coin.symbol}" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2224%22 fill=%22white%22%3E${coin.symbol.substring(0,2)}%3C/text%3E%3C/svg%3E'">
+                                <div class="item-name">${coin.symbol}</div>
+                                <div class="item-symbol">${coin.name}</div>
+                            </div>
+                            <div style="position: absolute; bottom: 8px; left: 8px; right: 8px;">
+                                <button id="monitor-btn-${coin.symbol}" 
+                                        onclick="event.stopPropagation(); toggleCoinMonitor('${coin.symbol}')"
+                                        style="width: 100%; padding: 6px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform='scale(1)'">
+                                    ▶ Monitor
+                                </button>
+                            </div>
                         </div>
                     `).join('');
                 }
@@ -879,43 +857,77 @@
             }, 300);
         }
         
-        // 启动新闻监听
-        async function startNewsTrading() {
-            try {
-                const response = await fetch('/api/news_trading/start', { method: 'POST' });
-                const result = await response.json();
-                
-                if (response.ok) {
-                    alert('✅ News monitoring started successfully!');
-                    loadData(); // 刷新状态
-                } else {
-                    alert('❌ Failed to start: ' + (result.error || result.message || 'Unknown error'));
+        // 币种监控状态管理
+        const monitoredCoins = new Set();
+        
+        // 切换币种监控
+        async function toggleCoinMonitor(coinSymbol) {
+            const btn = document.getElementById(`monitor-btn-${coinSymbol}`);
+            const isMonitoring = monitoredCoins.has(coinSymbol);
+            
+            if (!isMonitoring) {
+                // 启动监控
+                try {
+                    // 如果是第一个币种，先启动系统
+                    if (monitoredCoins.size === 0) {
+                        const startResponse = await fetch('/api/news_trading/start', { method: 'POST' });
+                        const startResult = await startResponse.json();
+                        
+                        if (!startResponse.ok) {
+                            alert('❌ Failed to start system: ' + (startResult.error || startResult.message || 'Unknown error'));
+                            return;
+                        }
+                    }
+                    
+                    // 添加到监控列表
+                    monitoredCoins.add(coinSymbol);
+                    
+                    // 更新按钮状态
+                    btn.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+                    btn.textContent = '⏹ Stop';
+                    
+                    // 更新系统状态
+                    updateSystemStatus();
+                    
+                    console.log(`✅ Started monitoring ${coinSymbol}`);
+                } catch (error) {
+                    console.error('Error starting monitoring:', error);
+                    alert('❌ Network error. Please try again.');
                 }
-            } catch (error) {
-                console.error('Error starting news trading:', error);
-                alert('❌ Network error. Please try again.');
+            } else {
+                // 停止监控
+                monitoredCoins.delete(coinSymbol);
+                
+                // 更新按钮状态
+                btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                btn.textContent = '▶ Monitor';
+                
+                // 如果没有监控的币种了，停止系统
+                if (monitoredCoins.size === 0) {
+                    try {
+                        await fetch('/api/news_trading/stop', { method: 'POST' });
+                    } catch (error) {
+                        console.error('Error stopping system:', error);
+                    }
+                }
+                
+                // 更新系统状态
+                updateSystemStatus();
+                
+                console.log(`⏹ Stopped monitoring ${coinSymbol}`);
             }
         }
         
-        // 停止新闻监听
-        async function stopNewsTrading() {
-            if (!confirm('Are you sure you want to stop news monitoring?')) {
-                return;
-            }
+        // 更新系统状态显示
+        function updateSystemStatus() {
+            const statusBadge = document.getElementById('listener-status');
             
-            try {
-                const response = await fetch('/api/news_trading/stop', { method: 'POST' });
-                const result = await response.json();
-                
-                if (response.ok) {
-                    alert('✅ News monitoring stopped!');
-                    loadData(); // 刷新状态
-                } else {
-                    alert('❌ Failed to stop: ' + (result.error || result.message || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error stopping news trading:', error);
-                alert('❌ Network error. Please try again.');
+            if (monitoredCoins.size > 0) {
+                statusBadge.className = 'status-badge status-active';
+                statusBadge.textContent = `● Monitoring ${monitoredCoins.size} coin(s)`;
+            } else {
+                statusBadge.className = 'status-badge status-inactive';
+                statusBadge.textContent = '● System Ready';
             }
         }
         
