@@ -48,6 +48,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# 静态文件路由 - 提供logo图片访问
+from fastapi.staticfiles import StaticFiles
+app.mount("/images", StaticFiles(directory="web/images"), name="images")
+
 # 全局变量 - 消息监听器
 news_listeners = []
 news_listener_tasks = []
