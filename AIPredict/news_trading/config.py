@@ -38,6 +38,7 @@ COIN_MAPPING = {
     "MON": "MON",
     "MEGAETH": "MEGA",
     "MEGA": "MEGA",
+    "PAYAI": "PAYAI",
     
     # DEX - Base链代币
     "PING": "PING",  # Base链Uniswap V4
@@ -46,7 +47,21 @@ COIN_MAPPING = {
 }
 
 # 支持交易的币种列表（用于过滤）
-SUPPORTED_COINS = list(set(COIN_MAPPING.values()))
+# 从环境变量读取，如果未配置则使用所有映射的币种
+def _get_supported_coins():
+    """从环境变量或配置文件获取支持的币种"""
+    from config.settings import settings
+    
+    # 如果环境变量中配置了币种，使用环境变量
+    if hasattr(settings, 'allowed_trading_symbols') and settings.allowed_trading_symbols:
+        # 环境变量格式: "MON,MEGA,PING"
+        env_coins = [coin.strip().upper() for coin in settings.allowed_trading_symbols.split(',')]
+        return env_coins
+    
+    # 否则使用所有映射的币种
+    return list(set(COIN_MAPPING.values()))
+
+SUPPORTED_COINS = _get_supported_coins()
 
 
 # ===== 手动模式配置 =====

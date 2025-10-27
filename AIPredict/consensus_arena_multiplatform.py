@@ -487,7 +487,19 @@ class ConsensusArena:
         
         enabled_platforms = get_enabled_platforms()
         logger.info(f"启用的交易平台: {', '.join(enabled_platforms)}")
-        logger.info(f"交易币种: {symbol_filter.get_default_symbol()}")
+        
+        # 根据启用的交易模式显示不同的币种信息
+        if not settings.enable_consensus_trading and not settings.enable_individual_trading:
+            # 纯新闻驱动模式：显示新闻监控的币种
+            try:
+                from news_trading.config import SUPPORTED_COINS
+                logger.info(f"📡 新闻监控币种: {', '.join(sorted(SUPPORTED_COINS))}")
+            except ImportError:
+                logger.info(f"交易币种: {symbol_filter.get_default_symbol()}")
+        else:
+            # 常规交易模式：显示常规交易币种
+            logger.info(f"交易币种: {symbol_filter.get_default_symbol()}")
+        
         logger.info(f"⏱️  决策周期: {self.update_interval//60}分钟")
         logger.info(f"🎯 共识规则: 每组至少{settings.consensus_min_votes}个AI同意才执行")
         logger.info(f"每组初始资金: ${settings.ai_initial_balance}")
@@ -1433,6 +1445,64 @@ async def start_news_trading():
     
     except Exception as e:
         logger.error(f"❌ 启动消息交易系统失败: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
+@app.get("/api/news_trading/coins")
+async def get_monitored_coins():
+    """获取所有监控的币种及其档案"""
+    try:
+        from news_trading.coin_profiles import get_all_monitored_coins, get_coin_profile
+        
+        coins = get_all_monitored_coins()
+        profiles = []
+        
+        for coin in coins:
+            profile = get_coin_profile(coin)
+            # 转换枚举为字符串
+            profile_data = {
+                "symbol": coin,
+                "name": profile["name"],
+                "full_name": profile["full_name"],
+                "description": profile["description"],
+                "background": profile["background"],
+                "upside_potential": profile["upside_potential"],
+                "trading_platforms": [p.value for p in profile["trading_platforms"]],
+                "news_sources": [s.value for s in profile["news_sources"]],
+                "why_monitor": profile["why_monitor"]
+            }
+            profiles.append(profile_data)
+        
+        return {"coins": profiles}
+    
+    except Exception as e:
+        logger.error(f"❌ 获取币种档案失败: {e}", exc_info=True)
+        return {"error": str(e), "coins": []}
+
+
+@app.get("/api/news_trading/coins/{coin_symbol}")
+async def get_coin_profile_api(coin_symbol: str):
+    """获取指定币种的详细档案"""
+    try:
+        from news_trading.coin_profiles import get_coin_profile
+        
+        profile = get_coin_profile(coin_symbol)
+        
+        # 转换枚举为字符串
+        return {
+            "symbol": coin_symbol.upper(),
+            "name": profile["name"],
+            "full_name": profile["full_name"],
+            "description": profile["description"],
+            "background": profile["background"],
+            "upside_potential": profile["upside_potential"],
+            "trading_platforms": [p.value for p in profile["trading_platforms"]],
+            "news_sources": [s.value for s in profile["news_sources"]],
+            "why_monitor": profile["why_monitor"]
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 获取币种档案失败: {e}", exc_info=True)
         return {"error": str(e)}
 
 
