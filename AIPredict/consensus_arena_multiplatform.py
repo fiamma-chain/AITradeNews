@@ -1453,22 +1453,30 @@ async def get_monitored_coins():
     """获取所有监控的币种及其档案"""
     try:
         from news_trading.coin_profiles import get_all_monitored_coins, get_coin_profile
+        from news_trading.logo_config import get_coin_logo, get_platform_logo, get_news_source_logo
         
         coins = get_all_monitored_coins()
         profiles = []
         
         for coin in coins:
             profile = get_coin_profile(coin)
-            # 转换枚举为字符串
+            # 转换枚举为字符串，并添加Logo
             profile_data = {
                 "symbol": coin,
                 "name": profile["name"],
                 "full_name": profile["full_name"],
                 "description": profile["description"],
+                "logo": get_coin_logo(coin),
                 "background": profile["background"],
                 "upside_potential": profile["upside_potential"],
-                "trading_platforms": [p.value for p in profile["trading_platforms"]],
-                "news_sources": [s.value for s in profile["news_sources"]],
+                "trading_platforms": [
+                    {"name": p.value, "logo": get_platform_logo(p.value)} 
+                    for p in profile["trading_platforms"]
+                ],
+                "news_sources": [
+                    {"name": s.value, "logo": get_news_source_logo(s.value)} 
+                    for s in profile["news_sources"]
+                ],
                 "why_monitor": profile["why_monitor"]
             }
             profiles.append(profile_data)
@@ -1485,19 +1493,35 @@ async def get_coin_profile_api(coin_symbol: str):
     """获取指定币种的详细档案"""
     try:
         from news_trading.coin_profiles import get_coin_profile
+        from news_trading.logo_config import get_coin_logo, get_platform_logo, get_news_source_logo, get_ai_model_logo
         
         profile = get_coin_profile(coin_symbol)
         
-        # 转换枚举为字符串
+        # 转换枚举为字符串，并添加Logo
         return {
             "symbol": coin_symbol.upper(),
             "name": profile["name"],
             "full_name": profile["full_name"],
             "description": profile["description"],
+            "logo": get_coin_logo(coin_symbol),
             "background": profile["background"],
             "upside_potential": profile["upside_potential"],
-            "trading_platforms": [p.value for p in profile["trading_platforms"]],
-            "news_sources": [s.value for s in profile["news_sources"]],
+            "trading_platforms": [
+                {"name": p.value, "logo": get_platform_logo(p.value)} 
+                for p in profile["trading_platforms"]
+            ],
+            "news_sources": [
+                {"name": s.value, "logo": get_news_source_logo(s.value)} 
+                for s in profile["news_sources"]
+            ],
+            "ai_models": [
+                {"name": "GPT-4o", "logo": get_ai_model_logo("GPT-4o")},
+                {"name": "Gemini-2.0-Flash", "logo": get_ai_model_logo("Gemini-2.0-Flash")},
+                {"name": "Grok-4-Fast", "logo": get_ai_model_logo("Grok-4-Fast")},
+                {"name": "DeepSeek", "logo": get_ai_model_logo("DeepSeek")},
+                {"name": "Claude-3.5", "logo": get_ai_model_logo("Claude-3.5")},
+                {"name": "Qwen-Max", "logo": get_ai_model_logo("Qwen-Max")},
+            ],
             "why_monitor": profile["why_monitor"]
         }
     

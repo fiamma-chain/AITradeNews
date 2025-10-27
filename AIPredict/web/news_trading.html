@@ -103,18 +103,35 @@
         .coin-badge {
             background: rgba(102, 126, 234, 0.2);
             color: #667eea;
-            padding: 4px 10px;
+            padding: 8px 12px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         
         .coin-badge:hover {
             background: rgba(102, 126, 234, 0.4);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .coin-logo, .platform-logo, .ai-logo, .source-logo {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .modal-badge .platform-logo,
+        .modal-badge .source-logo,
+        .modal-badge .ai-logo {
+            width: 16px;
+            height: 16px;
         }
         
         /* 用户输入区域 */
@@ -779,7 +796,10 @@
                 if (coinsData.coins && coinsData.coins.length > 0) {
                     const coinListEl = document.getElementById('coin-list');
                     coinListEl.innerHTML = coinsData.coins.map(coin => 
-                        `<span class="coin-badge" onclick="showCoinProfile('${coin.symbol}')" title="Click to view ${coin.name} details">${coin.symbol}</span>`
+                        `<span class="coin-badge" onclick="showCoinProfile('${coin.symbol}')" title="Click to view ${coin.name} details">
+                            <img src="${coin.logo}" alt="${coin.symbol}" class="coin-logo" onerror="this.style.display='none'">
+                            <span>${coin.symbol}</span>
+                        </span>`
                     ).join('');
                 }
                 
@@ -888,7 +908,10 @@
                                 <h3>🏦 Trading Platforms</h3>
                                 <div class="modal-badges">
                                     ${profile.trading_platforms.map(p => 
-                                        `<span class="modal-badge platform">${p}</span>`
+                                        `<span class="modal-badge platform">
+                                            <img src="${p.logo}" alt="${p.name}" class="platform-logo" onerror="this.style.display='none'">
+                                            <span>${p.name}</span>
+                                        </span>`
                                     ).join('')}
                                 </div>
                             </div>
@@ -898,7 +921,10 @@
                                 <h3>📡 News Sources</h3>
                                 <div class="modal-badges">
                                     ${profile.news_sources.map(s => 
-                                        `<span class="modal-badge source">${s}</span>`
+                                        `<span class="modal-badge source">
+                                            <img src="${s.logo}" alt="${s.name}" class="source-logo" onerror="this.style.display='none'">
+                                            <span>${s.name}</span>
+                                        </span>`
                                     ).join('')}
                                 </div>
                             </div>
@@ -915,12 +941,12 @@
                             <div class="modal-section">
                                 <h3>🤖 AI Models (Shared Across All Coins)</h3>
                                 <div class="modal-badges">
-                                    <span class="modal-badge source">GPT-4o</span>
-                                    <span class="modal-badge source">Gemini-2.0-Flash</span>
-                                    <span class="modal-badge source">Grok-4-Fast</span>
-                                    <span class="modal-badge source">DeepSeek</span>
-                                    <span class="modal-badge source">Claude-3.5</span>
-                                    <span class="modal-badge source">Qwen-Max</span>
+                                    ${profile.ai_models.map(ai => 
+                                        `<span class="modal-badge source">
+                                            <img src="${ai.logo}" alt="${ai.name}" class="ai-logo" onerror="this.style.display='none'">
+                                            <span>${ai.name}</span>
+                                        </span>`
+                                    ).join('')}
                                 </div>
                             </div>
                         </div>
