@@ -632,12 +632,25 @@
                     return;
                 }
                 
-                // 构建模态框HTML (与之前相同)
+                // 构建项目类型标签
+                const projectTypeLabels = {
+                    'Mega Project': { emoji: '🌟', color: '#FFD700' },
+                    'Normal Project': { emoji: '🔷', color: '#4299E1' },
+                    'Meme Token': { emoji: '🎭', color: '#ED8936' }
+                };
+                const typeInfo = projectTypeLabels[profile.project_type] || { emoji: '📊', color: '#718096' };
+                
+                // 构建模态框HTML
                 const modalHTML = `
                     <div class="modal-content">
                         <div class="modal-header">
                             <span class="modal-close" onclick="closeModal()">&times;</span>
-                            <h2>${profile.symbol} - ${profile.name}</h2>
+                            <h2>
+                                ${profile.symbol} - ${profile.name}
+                                <span style="background: ${typeInfo.color}22; color: ${typeInfo.color}; padding: 4px 12px; border-radius: 12px; font-size: 14px; margin-left: 12px;">
+                                    ${typeInfo.emoji} ${profile.project_type}
+                                </span>
+                            </h2>
                             <div style="font-size: 18px; color: #a0aec0; margin-bottom: 8px;">${profile.full_name}</div>
                             <div style="font-size: 15px; color: #718096; line-height: 1.6;">${profile.description}</div>
                         </div>
@@ -645,16 +658,20 @@
                         <div class="modal-body">
                             <!-- 背景信息 -->
                             <div class="modal-section">
-                                <h3>📋 Background Information</h3>
+                                <h3>📋 Background</h3>
                                 <div class="modal-grid">
                                     <div class="modal-item">
-                                        <div class="modal-item-label">Category</div>
-                                        <div class="modal-item-value">${profile.background.category}</div>
+                                        <div class="modal-item-label">Total Funding</div>
+                                        <div class="modal-item-value" style="color: #48bb78; font-weight: 600;">${profile.background.total_funding}</div>
                                     </div>
-                                    ${profile.background.launch_date ? `
+                                    <div class="modal-item">
+                                        <div class="modal-item-label">Track</div>
+                                        <div class="modal-item-value">${profile.background.track}</div>
+                                    </div>
+                                    ${profile.background.lead_investors ? `
                                         <div class="modal-item">
-                                            <div class="modal-item-label">Launch Date</div>
-                                            <div class="modal-item-value">${profile.background.launch_date}</div>
+                                            <div class="modal-item-label">Lead Investors</div>
+                                            <div class="modal-item-value">${profile.background.lead_investors}</div>
                                         </div>
                                     ` : ''}
                                     ${profile.background.team ? `
@@ -663,18 +680,30 @@
                                             <div class="modal-item-value">${profile.background.team}</div>
                                         </div>
                                     ` : ''}
-                                    ${profile.background.funding ? `
-                                        <div class="modal-item">
-                                            <div class="modal-item-label">Funding</div>
-                                            <div class="modal-item-value">${profile.background.funding}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 项目阶段 -->
+                            <div class="modal-section">
+                                <h3>🛣️ Project Stage</h3>
+                                <div style="background: linear-gradient(to right, #805AD5, #D53F8C); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div>
+                                            <div style="color: #E9D5FF; font-size: 13px; margin-bottom: 4px;">Current Stage</div>
+                                            <div style="color: white; font-size: 18px; font-weight: 600;">${profile.stage_progress.current}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="color: #E9D5FF; font-size: 13px; margin-bottom: 4px;">Next Expected</div>
+                                            <div style="color: white; font-size: 16px; font-weight: 500;">${profile.stage_progress.upcoming}</div>
+                                        </div>
+                                    </div>
+                                    ${profile.stage_progress.completed.length > 0 ? `
+                                        <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                                            <div style="color: #E9D5FF; font-size: 13px; margin-bottom: 6px;">✅ Completed Stages</div>
+                                            <div style="color: white; font-size: 14px;">${profile.stage_progress.completed.join(' → ')}</div>
                                         </div>
                                     ` : ''}
                                 </div>
-                                ${profile.background.key_features ? `
-                                    <ul class="modal-list">
-                                        ${profile.background.key_features.map(f => `<li>${f}</li>`).join('')}
-                                    </ul>
-                                ` : ''}
                             </div>
                             
                             <!-- 上涨潜力 -->

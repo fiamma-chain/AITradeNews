@@ -1570,6 +1570,10 @@ async def get_coin_profile_api(coin_symbol: str):
             "description": profile["description"],
             "logo": get_coin_logo(coin_symbol),
             "background": profile["background"],
+            "project_type": profile["project_type"].value if hasattr(profile["project_type"], "value") else profile["project_type"],
+            "current_stage": profile["current_stage"].value if hasattr(profile["current_stage"], "value") else profile["current_stage"],
+            "next_stage": profile["next_stage"].value if hasattr(profile["next_stage"], "value") else profile["next_stage"],
+            "stage_progress": profile["stage_progress"],
             "upside_potential": profile["upside_potential"],
             "trading_platforms": [
                 {"name": p.value, "logo": get_platform_logo(p.value)} 

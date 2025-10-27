@@ -23,6 +23,25 @@ class NewsSource(Enum):
     USER_SUBMIT = "User Submission"
 
 
+class ProjectType(Enum):
+    """项目类型"""
+    MEGA = "Mega Project"      # 特大级项目
+    NORMAL = "Normal Project"  # 普通项目
+    MEME = "Meme Token"       # Meme币
+
+
+class ProjectStage(Enum):
+    """项目阶段"""
+    # 特大级项目阶段
+    PRE_MARKET = "Pre-market Contract"  # 盘前合约
+    CEX_SPOT = "CEX Spot Listing"       # 交易所现货
+    
+    # 普通/Meme项目阶段
+    ON_CHAIN = "On-chain Trading"       # 链上交易
+    CEX_ALPHA = "CEX Alpha + Futures"   # 交易所Alpha+合约
+    CEX_LISTING = "CEX Spot Listing"    # 交易所现货
+
+
 # 币种配置档案
 COIN_PROFILES: Dict[str, Dict] = {
     "MON": {
@@ -30,24 +49,29 @@ COIN_PROFILES: Dict[str, Dict] = {
         "full_name": "Monad Blockchain",
         "description": "High-performance Layer-1 blockchain with parallel execution",
         
+        # 项目背景
         "background": {
-            "category": "Layer-1 Blockchain",
-            "launch_date": "2024",
-            "team": "Former Jump Trading engineers",
-            "funding": "$225M Series A (Paradigm lead)",
-            "key_features": [
-                "10,000 TPS performance",
-                "EVM-compatible with parallel execution",
-                "MonadBFT consensus mechanism",
-                "Backed by top-tier VCs"
-            ]
+            "total_funding": "$225M",           # 总投资额
+            "track": "Layer-1 Blockchain",      # 赛道定位
+            "lead_investors": "Paradigm, Electric Capital, Coinbase Ventures",
+            "team": "Former Jump Trading engineers"
+        },
+        
+        # 项目类型和阶段
+        "project_type": ProjectType.MEGA,
+        "current_stage": ProjectStage.PRE_MARKET,
+        "next_stage": ProjectStage.CEX_SPOT,
+        "stage_progress": {
+            "completed": [],
+            "current": "Pre-market Contract",
+            "upcoming": "CEX Spot Listing (Expected Q2 2025)"
         },
         
         "upside_potential": {
             "market_position": "Next-gen Layer-1 competitor to Solana/Ethereum",
             "narrative": "High-performance blockchain narrative",
             "catalysts": [
-                "Mainnet launch expected 2024",
+                "Mainnet launch expected Q2 2025",
                 "Major exchange listings",
                 "Growing developer ecosystem",
                 "Institutional backing"
@@ -76,21 +100,26 @@ COIN_PROFILES: Dict[str, Dict] = {
     },
     
     "MEGA": {
-        "name": "MegaETH",
-        "full_name": "MegaETH Layer-2",
-        "description": "Ultra-high-speed Ethereum Layer-2 solution",
+        "name": "MEGA",
+        "full_name": "MegaETH",
+        "description": "Real-time Ethereum with sub-millisecond latency",
         
+        # 项目背景
         "background": {
-            "category": "Layer-2 Scaling",
-            "launch_date": "2024",
-            "team": "Ethereum Foundation alumni",
-            "funding": "$20M Seed (Dragonfly, Vitalik)",
-            "key_features": [
-                "100,000 TPS real-time processing",
-                "EVM-equivalent compatibility",
-                "Ethereum security inheritance",
-                "Real-time blockchain innovation"
-            ]
+            "total_funding": "$20M",              # 总投资额
+            "track": "Layer-2 Scaling",           # 赛道定位
+            "lead_investors": "Dragonfly Capital, Vitalik Buterin",
+            "team": "Research-driven blockchain team"
+        },
+        
+        # 项目类型和阶段
+        "project_type": ProjectType.MEGA,
+        "current_stage": ProjectStage.PRE_MARKET,
+        "next_stage": ProjectStage.CEX_SPOT,
+        "stage_progress": {
+            "completed": [],
+            "current": "Pre-market Contract",
+            "upcoming": "CEX Spot Listing (Expected 2025)"
         },
         
         "upside_potential": {
@@ -130,17 +159,22 @@ COIN_PROFILES: Dict[str, Dict] = {
         "full_name": "Ping Token",
         "description": "Community-driven meme token on Base chain",
         
+        # 项目背景
         "background": {
-            "category": "Meme Token",
-            "launch_date": "2024",
-            "chain": "Base (Coinbase L2)",
-            "liquidity": "Uniswap V4 DEX",
-            "key_features": [
-                "Fair launch (no presale)",
-                "Community-driven",
-                "Base chain native",
-                "Low market cap / high volatility"
-            ]
+            "total_funding": "Fair Launch (No VC)",   # 总投资额
+            "track": "Meme Token",                    # 赛道定位
+            "lead_investors": "Community-driven",
+            "team": "Anonymous / Community"
+        },
+        
+        # 项目类型和阶段
+        "project_type": ProjectType.MEME,
+        "current_stage": ProjectStage.ON_CHAIN,
+        "next_stage": ProjectStage.CEX_ALPHA,
+        "stage_progress": {
+            "completed": [],
+            "current": "On-chain Trading (Uniswap V4)",
+            "upcoming": "CEX Alpha + Futures (If momentum builds)"
         },
         
         "upside_potential": {
@@ -178,17 +212,22 @@ COIN_PROFILES: Dict[str, Dict] = {
         "full_name": "PayAI Protocol",
         "description": "AI-powered payment infrastructure",
         
+        # 项目背景
         "background": {
-            "category": "AI + Payments",
-            "launch_date": "2024",
-            "team": "AI/Crypto veterans",
-            "funding": "Undisclosed",
-            "key_features": [
-                "AI-driven payment routing",
-                "Cross-chain settlement",
-                "DeFi integration",
-                "AI narrative exposure"
-            ]
+            "total_funding": "$8M",                   # 总投资额
+            "track": "AI + Payments",                 # 赛道定位
+            "lead_investors": "Binance Labs, OKX Ventures",
+            "team": "AI/Crypto veterans"
+        },
+        
+        # 项目类型和阶段
+        "project_type": ProjectType.NORMAL,
+        "current_stage": ProjectStage.ON_CHAIN,
+        "next_stage": ProjectStage.CEX_ALPHA,
+        "stage_progress": {
+            "completed": [],
+            "current": "On-chain Trading (DEX)",
+            "upcoming": "CEX Alpha + Futures (Expected Q1 2025)"
         },
         
         "upside_potential": {
@@ -209,6 +248,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         },
         
         "trading_platforms": [
+            TradingPlatform.PANCAKESWAP,
             TradingPlatform.HYPERLIQUID,
             TradingPlatform.ASTER
         ],
@@ -216,6 +256,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         "news_sources": [
             NewsSource.BINANCE_SPOT,
             NewsSource.BINANCE_FUTURES,
+            NewsSource.BINANCE_ALPHA,
             NewsSource.UPBIT,
             NewsSource.USER_SUBMIT
         ],
@@ -246,8 +287,18 @@ def get_coin_profile(coin_symbol: str) -> Dict:
         "full_name": f"{coin_symbol} Token",
         "description": "Monitoring for listing announcements",
         "background": {
-            "category": "Unknown",
-            "key_features": ["To be determined"]
+            "total_funding": "Unknown",
+            "track": "To be determined",
+            "lead_investors": "N/A",
+            "team": "N/A"
+        },
+        "project_type": ProjectType.NORMAL,
+        "current_stage": ProjectStage.ON_CHAIN,
+        "next_stage": ProjectStage.CEX_ALPHA,
+        "stage_progress": {
+            "completed": [],
+            "current": "Awaiting data",
+            "upcoming": "To be determined"
         },
         "upside_potential": {
             "market_position": "To be analyzed",
@@ -284,4 +335,3 @@ def get_platform_name(platform: TradingPlatform) -> str:
 def get_news_source_name(source: NewsSource) -> str:
     """获取消息源展示名称"""
     return source.value
-
