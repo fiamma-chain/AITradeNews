@@ -138,23 +138,63 @@ class NewsTradeHandler:
             logger.error(f"❌ [{ai_name}] 处理消息时出错 (耗时: {total_time:.2f}s): {e}", exc_info=True)
     
     async def _close_existing_positions(self, trader, coin: str):
-        """关闭现有仓位"""
+        """关闭现有仓位（从交易所查询实际持仓，而非依赖本地记录）"""
         ai_name = trader.ai_name
         
         # 检查所有平台的持仓
         for platform_name, platform_trader in trader.multi_trader.platform_traders.items():
             try:
-                # 检查是否有该币种的持仓
-                if coin in platform_trader.positions:
-                    position = platform_trader.positions[coin]
-                    logger.info(f"📤 [{ai_name}] [{platform_name}] 存在 {coin} 仓位，先平仓")
+                client = platform_trader.client
+                
+                # 🔑 关键：从交易所查询实际持仓，而非依赖本地记录
+                logger.info(f"🔍 [{ai_name}] [{platform_name}] 查询 {coin} 实际持仓...")
+                account_info = await client.get_account_info()
+                
+                has_position = False
+                actual_size = 0
+                actual_side = None
+                
+                # 检查交易所是否有该币种的实际持仓
+                for asset_pos in account_info.get('assetPositions', []):
+                    if asset_pos['position']['coin'] == coin:
+                        szi = float(asset_pos['position']['szi'])
+                        actual_size = abs(szi)
+                        actual_side = 'long' if szi > 0 else 'short'
+                        has_position = True
+                        break
+                
+                if has_position:
+                    logger.info(
+                        f"📤 [{ai_name}] [{platform_name}] 检测到 {coin} 实际持仓\n"
+                        f"   方向: {actual_side}\n"
+                        f"   数量: {actual_size}\n"
+                        f"   准备平仓..."
+                    )
                     
                     # 平仓
                     await platform_trader.close_position(coin, "消息触发平仓")
                     
                     logger.info(f"✅ [{ai_name}] [{platform_name}] {coin} 平仓完成")
+                    
+                    # 同步本地记录：如果本地没有记录但交易所有持仓，清理差异
+                    if coin not in platform_trader.positions:
+                        logger.warning(
+                            f"⚠️  [{ai_name}] [{platform_name}] 本地无 {coin} 记录，但交易所有持仓\n"
+                            f"   已平仓，本地与交易所已同步"
+                        )
+                else:
+                    logger.info(f"ℹ️  [{ai_name}] [{platform_name}] 交易所无 {coin} 持仓")
+                    
+                    # 如果本地有记录但交易所没有，清除本地记录
+                    if coin in platform_trader.positions:
+                        logger.warning(
+                            f"⚠️  [{ai_name}] [{platform_name}] 本地有 {coin} 记录，但交易所无持仓\n"
+                            f"   清除本地无效记录"
+                        )
+                        del platform_trader.positions[coin]
+                        
             except Exception as e:
-                logger.error(f"❌ [{ai_name}] [{platform_name}] 平仓失败: {e}")
+                logger.error(f"❌ [{ai_name}] [{platform_name}] 查询/平仓失败: {e}")
     
     async def _open_new_positions(self, trader, message: ListingMessage, strategy):
         """在所有平台开新仓"""
