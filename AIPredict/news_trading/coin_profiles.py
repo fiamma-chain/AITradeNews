@@ -68,6 +68,35 @@ COIN_PROFILES: Dict[str, Dict] = {
             "upcoming": "CEX Spot Listing (Expected Q2 2025)"
         },
         
+        # 阶段相关链接
+        "stage_links": {
+            "Pre-market Contract": [
+                {
+                    "platform": "Hyperliquid",
+                    "platform_short": "HL",
+                    "url": "https://app.hyperliquid.xyz/trade/MON",
+                    "logo": "/images/hyperliquid.png"
+                }
+            ],
+            "CEX Spot Listing": [
+                {
+                    "exchange": "Binance",
+                    "url": "https://www.binance.com",
+                    "logo": "/images/news_sources/binance.jpg"
+                },
+                {
+                    "exchange": "Upbit",
+                    "url": "https://upbit.com",
+                    "logo": "/images/news_sources/upbit.jpg"
+                },
+                {
+                    "exchange": "Coinbase",
+                    "url": "https://www.coinbase.com",
+                    "logo": "/images/coinbase.png"
+                }
+            ]
+        },
+        
         "upside_potential": {
             "market_position": "Next-gen Layer-1 competitor to Solana/Ethereum",
             "narrative": "High-performance blockchain narrative",
@@ -122,6 +151,35 @@ COIN_PROFILES: Dict[str, Dict] = {
             "completed": [],
             "current": "Pre-market Contract",
             "upcoming": "CEX Spot Listing (Expected 2025)"
+        },
+        
+        # 阶段相关链接
+        "stage_links": {
+            "Pre-market Contract": [
+                {
+                    "platform": "Hyperliquid",
+                    "platform_short": "HL",
+                    "url": "https://app.hyperliquid.xyz/trade/MEGA",
+                    "logo": "/images/hyperliquid.png"
+                }
+            ],
+            "CEX Spot Listing": [
+                {
+                    "exchange": "Binance",
+                    "url": "https://www.binance.com",
+                    "logo": "/images/news_sources/binance.jpg"
+                },
+                {
+                    "exchange": "Upbit",
+                    "url": "https://upbit.com",
+                    "logo": "/images/news_sources/upbit.jpg"
+                },
+                {
+                    "exchange": "Coinbase",
+                    "url": "https://www.coinbase.com",
+                    "logo": "/images/coinbase.png"
+                }
+            ]
         },
         
         "upside_potential": {
@@ -180,6 +238,37 @@ COIN_PROFILES: Dict[str, Dict] = {
             "upcoming": "CEX Alpha + Futures (If momentum builds)"
         },
         
+        # 阶段相关链接
+        "stage_links": {
+            "On-chain Trading": [
+                {
+                    "platform": "Uniswap V4",
+                    "platform_short": "Uni",
+                    "url": "https://app.uniswap.org/explore/tokens/base/0xd85c31854c2b0fb40aaa9e2fc4da23c21f829d46",
+                    "logo": "/images/uniswap.png"
+                }
+            ],
+            "CEX Alpha + Futures": [
+                {
+                    "exchange": "Binance Alpha",
+                    "url": "https://www.binance.com/en/alpha",
+                    "logo": "/images/news_sources/binance.jpg"
+                }
+            ],
+            "CEX Spot Listing": [
+                {
+                    "exchange": "Binance",
+                    "url": "https://www.binance.com",
+                    "logo": "/images/news_sources/binance.jpg"
+                },
+                {
+                    "exchange": "Upbit",
+                    "url": "https://upbit.com",
+                    "logo": "/images/news_sources/upbit.jpg"
+                }
+            ]
+        },
+        
         "upside_potential": {
             "market_position": "Emerging Base chain meme",
             "narrative": "Meme season + Base ecosystem growth",
@@ -232,6 +321,42 @@ COIN_PROFILES: Dict[str, Dict] = {
             "completed": [],
             "current": "On-chain Trading (DEX)",
             "upcoming": "CEX Alpha + Futures (Expected Q1 2025)"
+        },
+        
+        # 阶段相关链接
+        "stage_links": {
+            "On-chain Trading": [
+                {
+                    "platform": "PancakeSwap",
+                    "platform_short": "PCS",
+                    "url": "https://pancakeswap.finance/swap",
+                    "logo": "/images/pancakeswap.png"
+                }
+            ],
+            "CEX Alpha + Futures": [
+                {
+                    "exchange": "Binance Alpha",
+                    "url": "https://www.binance.com/en/alpha",
+                    "logo": "/images/news_sources/binance.jpg"
+                }
+            ],
+            "CEX Spot Listing": [
+                {
+                    "exchange": "Binance",
+                    "url": "https://www.binance.com",
+                    "logo": "/images/news_sources/binance.jpg"
+                },
+                {
+                    "exchange": "Upbit",
+                    "url": "https://upbit.com",
+                    "logo": "/images/news_sources/upbit.jpg"
+                },
+                {
+                    "exchange": "Coinbase",
+                    "url": "https://www.coinbase.com",
+                    "logo": "/images/coinbase.png"
+                }
+            ]
         },
         
         "upside_potential": {

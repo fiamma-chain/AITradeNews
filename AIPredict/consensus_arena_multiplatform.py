@@ -1575,6 +1575,7 @@ async def get_coin_profile_api(coin_symbol: str):
             "current_stage": profile["current_stage"].value if hasattr(profile["current_stage"], "value") else profile["current_stage"],
             "next_stage": profile["next_stage"].value if hasattr(profile["next_stage"], "value") else profile["next_stage"],
             "stage_progress": profile["stage_progress"],
+            "stage_links": profile.get("stage_links", {}),
             "upside_potential": profile["upside_potential"],
             "trading_platforms": [
                 {"name": p.value, "logo": get_platform_logo(p.value)} 
