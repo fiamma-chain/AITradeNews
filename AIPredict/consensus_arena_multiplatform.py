@@ -31,6 +31,7 @@ from news_trading.message_listeners.binance_listener import (
     create_binance_alpha_listener
 )
 from news_trading.message_listeners.upbit_listener import create_upbit_listener
+from news_trading.message_listeners.coinbase_listener import create_coinbase_listener
 from news_trading.message_listeners.base_listener import ListingMessage
 from news_trading.config import is_supported_coin
 from config.settings import get_news_trading_ais
@@ -1430,7 +1431,8 @@ async def start_news_trading():
             create_binance_spot_listener(news_handler.handle_message),
             create_binance_futures_listener(news_handler.handle_message),
             create_binance_alpha_listener(news_handler.handle_message),
-            create_upbit_listener(news_handler.handle_message)
+            create_upbit_listener(news_handler.handle_message),
+            create_coinbase_listener(news_handler.handle_message)
         ]
         
         # 启动所有监听器

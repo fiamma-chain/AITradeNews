@@ -18,6 +18,7 @@ class MessageSource(Enum):
     BINANCE_FUTURES = "binance_futures"
     BINANCE_ALPHA = "binance_alpha"
     UPBIT = "upbit"
+    COINBASE = "coinbase"
 
 
 # ===== 币种映射配置 =====
