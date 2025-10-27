@@ -11,12 +11,14 @@ class Chain(Enum):
     BASE = "base"
     BSC = "bsc"
     ETHEREUM = "ethereum"
+    SOLANA = "solana"
 
 
 class DEXProtocol(Enum):
     """支持的DEX协议"""
     UNISWAP_V4 = "uniswap_v4"
     PANCAKESWAP = "pancakeswap"
+    RAYDIUM = "raydium"
 
 
 # ===== Base链配置 =====
@@ -48,6 +50,22 @@ BSC_CONFIG = {
         "router_v3": "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
         "factory": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
         "quoter": "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+    }
+}
+
+# ===== Solana链配置 =====
+SOLANA_CONFIG = {
+    "chain_id": "mainnet-beta",
+    "rpc_url": "https://api.mainnet-beta.solana.com",
+    "explorer": "https://solscan.io",
+    "native_token": "SOL",
+    "wrapped_native": "So11111111111111111111111111111111111111112",  # Wrapped SOL
+    
+    # Raydium程序地址
+    "raydium": {
+        "amm_program": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",  # Raydium AMM V4
+        "serum_program": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",  # Serum DEX
+        "openbook_program": "srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX",  # OpenBook
     }
 }
 
@@ -102,8 +120,33 @@ BSC_TOKENS: Dict[str, Dict] = {
     },
 }
 
+# Solana链代币
+SOLANA_TOKENS: Dict[str, Dict] = {
+    "PAYAI": {
+        "name": "PayAI",
+        "address": "YOUR_PAYAI_TOKEN_MINT_ADDRESS",  # 需要填入实际的Token Mint地址
+        "decimals": 9,  # Solana代币通常是9位小数
+        "chain": "solana",
+        "dex": "raydium",
+        "base_pair": "USDC",  # 交易对
+    },
+    "USDC": {
+        "name": "USD Coin",
+        "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # Solana USDC
+        "decimals": 6,
+        "chain": "solana",
+        "is_stablecoin": True,
+    },
+    "WSOL": {
+        "name": "Wrapped SOL",
+        "address": "So11111111111111111111111111111111111111112",
+        "decimals": 9,
+        "chain": "solana",
+    },
+}
+
 # 所有代币
-ALL_DEX_TOKENS = {**BASE_TOKENS, **BSC_TOKENS}
+ALL_DEX_TOKENS = {**BASE_TOKENS, **BSC_TOKENS, **SOLANA_TOKENS}
 
 
 # ===== DEX交易配置 =====
@@ -134,6 +177,8 @@ def get_chain_config(chain: str) -> Dict:
         return BASE_CONFIG
     elif chain.lower() == "bsc":
         return BSC_CONFIG
+    elif chain.lower() == "solana":
+        return SOLANA_CONFIG
     else:
         raise ValueError(f"Unsupported chain: {chain}")
 
@@ -163,6 +208,8 @@ def get_stablecoin_for_chain(chain: str) -> str:
         return "USDC"
     elif chain.lower() == "bsc":
         return "USDT"
+    elif chain.lower() == "solana":
+        return "USDC"
     else:
         raise ValueError(f"No stablecoin configured for chain: {chain}")
 

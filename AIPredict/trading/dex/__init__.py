@@ -6,8 +6,10 @@ from .base_dex_client import BaseDEXClient
 from .dex_config import (
     BASE_CONFIG,
     BSC_CONFIG,
+    SOLANA_CONFIG,
     BASE_TOKENS,
     BSC_TOKENS,
+    SOLANA_TOKENS,
     ALL_DEX_TOKENS,
     DEX_TRADING_CONFIG,
     get_chain_config,
@@ -19,15 +21,19 @@ from .dex_config import (
 )
 from .uniswap_v4_client import UniswapV4Client
 from .pancakeswap_client import PancakeSwapClient
+from .raydium_client import RaydiumClient
 
 __all__ = [
     "BaseDEXClient",
     "UniswapV4Client",
     "PancakeSwapClient",
+    "RaydiumClient",
     "BASE_CONFIG",
     "BSC_CONFIG",
+    "SOLANA_CONFIG",
     "BASE_TOKENS",
     "BSC_TOKENS",
+    "SOLANA_TOKENS",
     "ALL_DEX_TOKENS",
     "DEX_TRADING_CONFIG",
     "get_chain_config",

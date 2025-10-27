@@ -15,6 +15,7 @@ from trading.dex import (
     get_token_chain,
     UniswapV4Client,
     PancakeSwapClient,
+    RaydiumClient,
 )
 
 logger = logging.getLogger(__name__)
@@ -98,6 +99,22 @@ class ClientFactory:
                     rpc_url=settings.bsc_rpc_url
                 )
             
+            elif chain == "solana":
+                # Solana链 - Raydium
+                if not settings.solana_chain_enabled:
+                    logger.error(f"❌ Solana链未启用，无法交易 {coin}")
+                    return None
+                
+                if not settings.solana_private_key:
+                    logger.error(f"❌ Solana链私钥未配置")
+                    return None
+                
+                logger.info(f"✅ 创建Raydium客户端 (Solana链)")
+                return RaydiumClient(
+                    private_key=settings.solana_private_key,
+                    rpc_url=settings.solana_rpc_url
+                )
+            
             else:
                 logger.error(f"❌ 不支持的链: {chain}")
                 return None
@@ -169,6 +186,15 @@ class ClientFactory:
                 rpc_url=settings.bsc_rpc_url
             )
         
+        elif platform_lower in ["raydium", "solana"]:
+            if not settings.solana_chain_enabled or not settings.solana_private_key:
+                logger.error(f"❌ Solana链未配置")
+                return None
+            return RaydiumClient(
+                private_key=settings.solana_private_key,
+                rpc_url=settings.solana_rpc_url
+            )
+        
         else:
             logger.error(f"❌ 不支持的平台: {platform}")
             return None
@@ -192,6 +218,8 @@ class ClientFactory:
                 return ["uniswap_v4"] if settings.base_chain_enabled else []
             elif chain == "bsc":
                 return ["pancakeswap"] if settings.bsc_chain_enabled else []
+            elif chain == "solana":
+                return ["raydium"] if settings.solana_chain_enabled else []
             else:
                 return []
         else:
