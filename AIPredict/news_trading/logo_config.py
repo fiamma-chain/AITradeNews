@@ -27,6 +27,7 @@ PLATFORM_LOGOS = {
     "Aster": None,  # 移除Aster logo
     "Uniswap V4 (Base)": "/images/uniswap.png",      # 需要添加
     "PancakeSwap (BSC)": "/images/pancakeswap.png",  # 需要添加
+    "Raydium (Solana)": "/images/raydium.png",       # ✅ 需要添加
 }
 
 # AI模型Logo（使用现有文件）

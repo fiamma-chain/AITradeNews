@@ -12,6 +12,7 @@ class TradingPlatform(Enum):
     ASTER = "Aster"
     UNISWAP_V4 = "Uniswap V4 (Base)"
     PANCAKESWAP = "PancakeSwap (BSC)"
+    RAYDIUM = "Raydium (Solana)"
 
 
 class NewsSource(Enum):
