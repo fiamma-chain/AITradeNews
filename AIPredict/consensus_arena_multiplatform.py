@@ -1627,54 +1627,69 @@ async def get_coin_profile_api(coin_symbol: str):
         return {"error": str(e)}
 
 
-@app.post("/api/news_trading/submit_coin")
-async def submit_coin(request: dict):
-    """接收用户提交的币种"""
+@app.post("/api/news_trading/submit_url")
+async def submit_url(request: dict):
+    """接收用户提交的URL（新闻链接或项目链接）"""
     try:
-        import json
         from datetime import datetime
         
-        # 验证必填字段
-        required_fields = ['symbol', 'name', 'project_type', 'twitter', 'trading_link']
-        for field in required_fields:
-            if not request.get(field):
-                return {"error": f"Missing required field: {field}"}
+        url = request.get('url')
+        if not url:
+            return {"error": "Missing required field: url"}
         
-        # 保存提交到文件
-        submission = {
-            "timestamp": datetime.now().isoformat(),
-            "symbol": request['symbol'],
-            "name": request['name'],
-            "project_type": request['project_type'],
-            "twitter": request['twitter'],
-            "trading_link": request['trading_link'],
-            "notes": request.get('notes', ''),
-            "status": "pending"
-        }
+        logger.info(f"📬 收到用户提交的URL: {url}")
         
-        # 追加到submissions.json文件
-        submissions_file = "coin_submissions.json"
-        try:
-            with open(submissions_file, 'r') as f:
-                submissions = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            submissions = []
+        # 抓取URL内容
+        content = await scrape_url_content(url)
         
-        submissions.append(submission)
+        if not content:
+            return {"error": "Failed to fetch content from URL"}
         
-        with open(submissions_file, 'w') as f:
-            json.dump(submissions, f, indent=2)
+        # 创建用户提交消息
+        from news_trading.message_listeners.base_listener import ListingMessage
         
-        logger.info(f"✅ 新币种提交: {request['symbol']} - {request['name']}")
+        # 尝试从内容中提取币种符号
+        from news_trading.config import SUPPORTED_COINS
+        coin_symbols = []
+        for coin in SUPPORTED_COINS:
+            if coin.upper() in content.upper():
+                coin_symbols.append(coin.upper())
+        
+        # 如果找到币种，创建消息并触发处理
+        if coin_symbols and news_handler:
+            for coin_symbol in coin_symbols[:1]:  # 只处理第一个匹配的币种
+                message = ListingMessage(
+                    source="user_submit",
+                    coin_symbol=coin_symbol,
+                    raw_message=f"User submitted: {content[:200]}...",
+                    timestamp=datetime.now(),
+                    url=url,
+                    reliability_score=0.7  # 用户提交可靠性中等
+                )
+                
+                # 触发处理
+                await news_handler.handle_message(message)
+                
+                logger.info(f"✅ 用户提交已触发AI分析: {coin_symbol}")
+                
+                return {
+                    "success": True,
+                    "message": "URL submitted and AI analysis triggered",
+                    "coin_symbol": coin_symbol,
+                    "url": url
+                }
+        
+        # 如果没有找到币种，仍然记录提交
+        logger.warning(f"⚠️ 用户提交的URL未识别到支持的币种: {url}")
         
         return {
             "success": True,
-            "message": "Submission received successfully",
-            "symbol": request['symbol']
+            "message": "URL received but no supported coin detected",
+            "url": url
         }
     
     except Exception as e:
-        logger.error(f"❌ 处理币种提交失败: {e}", exc_info=True)
+        logger.error(f"❌ 处理URL提交失败: {e}", exc_info=True)
         return {"error": str(e)}
 
 

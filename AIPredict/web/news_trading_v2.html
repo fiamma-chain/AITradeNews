@@ -457,7 +457,21 @@
         <div class="header">
             <h1>📡 AI News Trading Monitor</h1>
             <p class="subtitle">Real-time cryptocurrency trading driven by news and AI analysis</p>
-            <span id="listener-status" class="status-badge status-active">● Listening</span>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <span id="listener-status" class="status-badge status-inactive" style="cursor: default;">● Stopped</span>
+                <button id="start-btn" onclick="startNewsTrading()" 
+                        style="padding: 8px 20px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(72, 187, 120, 0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    ▶️ Start Monitoring
+                </button>
+                <button id="stop-btn" onclick="stopNewsTrading()" 
+                        style="display: none; padding: 8px 20px; background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 101, 101, 0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    ⏹️ Stop Monitoring
+                </button>
+            </div>
         </div>
         
         <!-- Main Grid -->
@@ -591,83 +605,25 @@
             </div>
             <div class="modal-body">
                 <form id="submitCoinForm" style="display: flex; flex-direction: column; gap: 20px;">
-                    <!-- 币种符号 -->
+                    <!-- 新闻/项目链接 -->
                     <div>
                         <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Coin Symbol *
+                            🔗 News or Project Link *
                         </label>
-                        <input type="text" id="coinSymbol" required
-                               placeholder="e.g., MON, MEGA, PING"
-                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                        <input type="url" id="newsLink" required
+                               placeholder="https://www.binance.com/en/support/announcement/... or project website"
+                               style="width: 100%; padding: 14px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 15px;"
                                onfocus="this.style.borderColor='#667eea'"
                                onblur="this.style.borderColor='#4a5568'">
-                    </div>
-                    
-                    <!-- 项目名称 -->
-                    <div>
-                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Project Name *
-                        </label>
-                        <input type="text" id="coinName" required
-                               placeholder="e.g., Monad, MegaETH"
-                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
-                               onfocus="this.style.borderColor='#667eea'"
-                               onblur="this.style.borderColor='#4a5568'">
-                    </div>
-                    
-                    <!-- 项目类型 -->
-                    <div>
-                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Project Type *
-                        </label>
-                        <select id="projectType" required
-                                style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px; cursor: pointer;"
-                                onfocus="this.style.borderColor='#667eea'"
-                                onblur="this.style.borderColor='#4a5568'">
-                            <option value="">Select project type...</option>
-                            <option value="mega">🌟 Mega Project (Pre-market to CEX)</option>
-                            <option value="normal">🔷 Normal Project (DEX to CEX)</option>
-                            <option value="meme">🎭 Meme Token (DEX to CEX)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Twitter链接 -->
-                    <div>
-                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Twitter/X Link *
-                        </label>
-                        <input type="url" id="twitterLink" required
-                               placeholder="https://twitter.com/project_handle"
-                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
-                               onfocus="this.style.borderColor='#667eea'"
-                               onblur="this.style.borderColor='#4a5568'">
-                    </div>
-                    
-                    <!-- 交易链接 -->
-                    <div>
-                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Trading Link *
-                        </label>
-                        <input type="url" id="tradingLink" required
-                               placeholder="https://app.hyperliquid.xyz/trade/XXX or DEX link"
-                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
-                               onfocus="this.style.borderColor='#667eea'"
-                               onblur="this.style.borderColor='#4a5568'">
-                        <p style="color: #a0aec0; font-size: 12px; margin-top: 4px;">
-                            Provide the current trading platform link (Hyperliquid, Uniswap, PancakeSwap, etc.)
-                        </p>
-                    </div>
-                    
-                    <!-- 备注 -->
-                    <div>
-                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
-                            Additional Notes (Optional)
-                        </label>
-                        <textarea id="notes" rows="3"
-                                  placeholder="Any additional information about this project..."
-                                  style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px; resize: vertical;"
-                                  onfocus="this.style.borderColor='#667eea'"
-                                  onblur="this.style.borderColor='#4a5568'"></textarea>
+                        <div style="margin-top: 12px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; border-radius: 4px;">
+                            <p style="color: #a0aec0; font-size: 13px; line-height: 1.6; margin: 0;">
+                                📌 <strong>Supported Links:</strong><br>
+                                • Exchange listing announcements (Binance, Coinbase, Upbit)<br>
+                                • Project Twitter/X page<br>
+                                • Trading platform (Hyperliquid, Uniswap, PancakeSwap)<br>
+                                • Project official website
+                            </p>
+                        </div>
                     </div>
                     
                     <!-- 提交按钮 -->
@@ -698,14 +654,21 @@
                 const statusResponse = await fetch('/api/news_trading/status');
                 const statusData = await statusResponse.json();
                 
-                // 更新监听器状态
+                // 更新监听器状态和按钮
                 const listenerBadge = document.getElementById('listener-status');
+                const startBtn = document.getElementById('start-btn');
+                const stopBtn = document.getElementById('stop-btn');
+                
                 if (statusData.running) {
                     listenerBadge.className = 'status-badge status-active';
                     listenerBadge.textContent = '● Listening';
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'block';
                 } else {
                     listenerBadge.className = 'status-badge status-inactive';
                     listenerBadge.textContent = '● Stopped';
+                    startBtn.style.display = 'block';
+                    stopBtn.style.display = 'none';
                 }
                 
                 // 加载监控的币种列表
@@ -916,6 +879,46 @@
             }, 300);
         }
         
+        // 启动新闻监听
+        async function startNewsTrading() {
+            try {
+                const response = await fetch('/api/news_trading/start', { method: 'POST' });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ News monitoring started successfully!');
+                    loadData(); // 刷新状态
+                } else {
+                    alert('❌ Failed to start: ' + (result.error || result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error starting news trading:', error);
+                alert('❌ Network error. Please try again.');
+            }
+        }
+        
+        // 停止新闻监听
+        async function stopNewsTrading() {
+            if (!confirm('Are you sure you want to stop news monitoring?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/news_trading/stop', { method: 'POST' });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ News monitoring stopped!');
+                    loadData(); // 刷新状态
+                } else {
+                    alert('❌ Failed to stop: ' + (result.error || result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error stopping news trading:', error);
+                alert('❌ Network error. Please try again.');
+            }
+        }
+        
         // 显示提交币种模态框
         function showSubmitCoinModal() {
             const modal = document.getElementById('submitCoinModal');
@@ -934,17 +937,16 @@
         document.getElementById('submitCoinForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const newsLink = document.getElementById('newsLink').value;
+            
+            // 简化提交：只需要URL
             const formData = {
-                symbol: document.getElementById('coinSymbol').value.toUpperCase(),
-                name: document.getElementById('coinName').value,
-                project_type: document.getElementById('projectType').value,
-                twitter: document.getElementById('twitterLink').value,
-                trading_link: document.getElementById('tradingLink').value,
-                notes: document.getElementById('notes').value
+                url: newsLink,
+                timestamp: new Date().toISOString()
             };
             
             try {
-                const response = await fetch('/api/news_trading/submit_coin', {
+                const response = await fetch('/api/news_trading/submit_url', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -955,13 +957,13 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ Thank you! Your submission has been received and will be reviewed shortly.');
+                    alert('✅ Thank you! Your submission has been received.\n\nThe AI will analyze this link and make trading decisions automatically.');
                     closeSubmitCoinModal();
                 } else {
                     alert('❌ Submission failed: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
-                console.error('Error submitting coin:', error);
+                console.error('Error submitting URL:', error);
                 alert('❌ Network error. Please try again later.');
             }
         });
