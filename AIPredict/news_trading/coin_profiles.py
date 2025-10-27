@@ -48,6 +48,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         "name": "Monad",
         "full_name": "Monad Blockchain",
         "description": "High-performance Layer-1 blockchain with parallel execution",
+        "twitter": "https://twitter.com/monad_xyz",
         
         # 项目背景
         "background": {
@@ -103,6 +104,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         "name": "MEGA",
         "full_name": "MegaETH",
         "description": "Real-time Ethereum with sub-millisecond latency",
+        "twitter": "https://twitter.com/megaeth_labs",
         
         # 项目背景
         "background": {
@@ -158,6 +160,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         "name": "PING",
         "full_name": "Ping Token",
         "description": "Community-driven meme token on Base chain",
+        "twitter": "https://twitter.com/pingonbase",
         
         # 项目背景
         "background": {
@@ -211,6 +214,7 @@ COIN_PROFILES: Dict[str, Dict] = {
         "name": "PayAI",
         "full_name": "PayAI Protocol",
         "description": "AI-powered payment infrastructure",
+        "twitter": "https://twitter.com/payai_official",
         
         # 项目背景
         "background": {

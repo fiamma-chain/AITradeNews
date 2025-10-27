@@ -1569,6 +1569,7 @@ async def get_coin_profile_api(coin_symbol: str):
             "full_name": profile["full_name"],
             "description": profile["description"],
             "logo": get_coin_logo(coin_symbol),
+            "twitter": profile.get("twitter", ""),
             "background": profile["background"],
             "project_type": profile["project_type"].value if hasattr(profile["project_type"], "value") else profile["project_type"],
             "current_stage": profile["current_stage"].value if hasattr(profile["current_stage"], "value") else profile["current_stage"],
