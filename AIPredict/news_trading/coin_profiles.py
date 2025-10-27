@@ -301,36 +301,36 @@ COIN_PROFILES: Dict[str, Dict] = {
     
     "PAYAI": {
         "name": "PayAI",
-        "full_name": "PayAI Protocol",
-        "description": "AI-powered payment infrastructure",
-        "twitter": "https://twitter.com/payai_official",
+        "full_name": "PayAI Network",
+        "description": "Meme token on Solana with AI narrative",
+        "twitter": "https://x.com/PayAINetwork",
         
         # 项目背景
         "background": {
-            "total_funding": "$8M",                   # 总投资额
-            "track": "AI + Payments",                 # 赛道定位
-            "lead_investors": "Binance Labs, OKX Ventures",
-            "team": "AI/Crypto veterans"
+            "total_funding": "Fair Launch (No VC)",   # 总投资额
+            "track": "Meme Token",                    # 赛道定位
+            "lead_investors": "Community-driven",
+            "team": "Anonymous / Community"
         },
         
         # 项目类型和阶段
-        "project_type": ProjectType.NORMAL,
+        "project_type": ProjectType.MEME,
         "current_stage": ProjectStage.ON_CHAIN,
         "next_stage": ProjectStage.CEX_ALPHA,
         "stage_progress": {
             "completed": [],
-            "current": "On-chain Trading (DEX)",
-            "upcoming": "CEX Alpha + Futures (Expected Q1 2025)"
+            "current": "On-chain Trading (Solana DEX)",
+            "upcoming": "CEX Alpha + Futures (If momentum builds)"
         },
         
         # 阶段相关链接
         "stage_links": {
             "On-chain Trading": [
                 {
-                    "platform": "PancakeSwap",
-                    "platform_short": "PCS",
-                    "url": "https://pancakeswap.finance/swap",
-                    "logo": "/images/pancakeswap.png"
+                    "platform": "Raydium/Jupiter",
+                    "platform_short": "SOL",
+                    "url": "https://jup.ag/swap/SOL-PAYAI",
+                    "logo": "/images/solana.png"
                 }
             ],
             "CEX Alpha + Futures": [
@@ -350,34 +350,30 @@ COIN_PROFILES: Dict[str, Dict] = {
                     "exchange": "Upbit",
                     "url": "https://upbit.com",
                     "logo": "/images/news_sources/upbit.jpg"
-                },
-                {
-                    "exchange": "Coinbase",
-                    "url": "https://www.coinbase.com",
-                    "logo": "/images/news_sources/coinbase.png"
                 }
             ]
         },
         
         "upside_potential": {
-            "market_position": "AI + Payments intersection",
-            "narrative": "AI hype + practical utility",
+            "market_position": "AI + Meme intersection on Solana",
+            "narrative": "AI hype + Meme momentum",
             "catalysts": [
+                "Community growth",
+                "Social media viral moments",
                 "AI narrative strength",
-                "Partnership announcements",
-                "Exchange listings",
-                "Product adoption metrics"
+                "CEX listing rumors"
             ],
             "risk_factors": [
-                "Competitive payment space",
-                "AI narrative saturation",
-                "Execution challenges"
+                "Extreme volatility",
+                "Meme coin risks",
+                "No fundamental value",
+                "Market sentiment dependent"
             ],
-            "target_multiplier": "3-6x from listing price"
+            "target_multiplier": "10-50x (high risk/reward)"
         },
         
         "trading_platforms": [
-            TradingPlatform.PANCAKESWAP,
+            TradingPlatform.PANCAKESWAP,  # 作为DEX的占位符
             TradingPlatform.HYPERLIQUID,
             TradingPlatform.ASTER
         ],
@@ -390,7 +386,7 @@ COIN_PROFILES: Dict[str, Dict] = {
             NewsSource.USER_SUBMIT
         ],
         
-        "why_monitor": "AI narrative token. Listing events during AI hype cycles can drive significant momentum. Cross-sector appeal."
+        "why_monitor": "Meme token with AI narrative on Solana. High-volatility play combining two hot sectors. Early DEX detection can capture explosive pumps."
     }
 }
 

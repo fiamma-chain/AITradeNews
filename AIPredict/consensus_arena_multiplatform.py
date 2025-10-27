@@ -1627,6 +1627,56 @@ async def get_coin_profile_api(coin_symbol: str):
         return {"error": str(e)}
 
 
+@app.post("/api/news_trading/submit_coin_full")
+async def submit_coin_full(request: dict):
+    """接收用户提交的完整币种信息（包含所有字段）"""
+    try:
+        import json
+        from datetime import datetime
+        
+        # 验证必填字段
+        required_fields = ['symbol', 'name', 'project_type', 'twitter', 'trading_link']
+        for field in required_fields:
+            if not request.get(field):
+                return {"error": f"Missing required field: {field}"}
+        
+        # 保存提交到文件
+        submission = {
+            "timestamp": datetime.now().isoformat(),
+            "symbol": request['symbol'],
+            "name": request['name'],
+            "project_type": request['project_type'],
+            "twitter": request['twitter'],
+            "trading_link": request['trading_link'],
+            "status": "pending"
+        }
+        
+        # 追加到submissions.json文件
+        submissions_file = "coin_submissions.json"
+        try:
+            with open(submissions_file, 'r') as f:
+                submissions = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            submissions = []
+        
+        submissions.append(submission)
+        
+        with open(submissions_file, 'w') as f:
+            json.dump(submissions, f, indent=2)
+        
+        logger.info(f"✅ 新币种提交 (完整表单): {request['symbol']} - {request['name']}")
+        
+        return {
+            "success": True,
+            "message": "Coin submission received successfully",
+            "symbol": request['symbol']
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 处理完整币种提交失败: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
 @app.post("/api/news_trading/submit_url")
 async def submit_url(request: dict):
     """接收用户提交的URL（新闻链接或项目链接）"""
