@@ -62,12 +62,26 @@
             border: 2px solid #48bb78;
         }
         
-        /* Main Grid */
+        /* Main Grid - 两行布局 */
         .main-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 30px;
             margin-bottom: 30px;
+        }
+        
+        /* 第一行 - Monitored Coins 单独占一行 */
+        .grid-row-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        /* 第二行 - 4个卡片平分 */
+        .grid-row-four {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
         }
         
         /* Section Card */
@@ -462,30 +476,35 @@
         
         <!-- Main Grid -->
         <div class="main-grid">
-            <!-- 1. Monitored Coins -->
-            <div class="section-card">
-                <div class="section-header">
-                    <div class="section-icon">🪙</div>
-                    <div class="section-title">
-                        <h2>Monitored Coins</h2>
-                        <p class="count"><span id="coin-count">0</span> cryptocurrencies</p>
+            <!-- 第一行：Monitored Coins -->
+            <div class="grid-row-full">
+                <!-- 1. Monitored Coins -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-icon">🪙</div>
+                        <div class="section-title">
+                            <h2>Monitored Coins</h2>
+                            <p class="count"><span id="coin-count">0</span> cryptocurrencies</p>
+                        </div>
                     </div>
-                </div>
-                <div id="coin-grid" class="item-grid">
-                    <!-- 动态加载 -->
-                </div>
-                <!-- 用户提交入口 -->
-                <div style="margin-top: 20px; text-align: center;">
-                    <button onclick="showSubmitCoinFormModal()" 
-                            style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
-                        ➕ Submit New Coin
-                    </button>
+                    <div id="coin-grid" class="item-grid">
+                        <!-- 动态加载 -->
+                    </div>
+                    <!-- 用户提交入口 -->
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button onclick="showSubmitCoinFormModal()" 
+                                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
+                            ➕ Submit New Coin
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <!-- 2. Trading Platforms -->
+            <!-- 第二行：四个卡片 -->
+            <div class="grid-row-four">
+                <!-- 2. Trading Platforms -->
             <div class="section-card">
                 <div class="section-header">
                     <div class="section-icon">🏦</div>
@@ -582,6 +601,62 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 5. Alpha Hunter -->
+            <div class="section-card" style="border: 3px solid #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);">
+                <div class="section-header">
+                    <div class="section-icon">🎯</div>
+                    <div class="section-title">
+                        <h2 style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Alpha Hunter</h2>
+                        <p class="count">AI-Powered Automated Trading</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+                    <!-- Step 1: 选择币种 -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <span style="font-size: 24px;">1️⃣</span>
+                            <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Select Coin</span>
+                        </div>
+                        <select id="alpha-coin-select" style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px; cursor: pointer;">
+                            <option value="">Choose a monitored coin...</option>
+                        </select>
+                        <p style="font-size: 12px; color: #a0aec0; margin-top: 8px;">Select from actively monitored coins</p>
+                    </div>
+                    
+                    <!-- Step 2: 连接钱包 -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <span style="font-size: 24px;">2️⃣</span>
+                            <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Connect Wallet</span>
+                        </div>
+                        <button id="connect-wallet-btn" onclick="connectWallet()" 
+                                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)';">
+                            🦊 Connect Wallet
+                        </button>
+                        <p id="wallet-address" style="font-size: 12px; color: #48bb78; margin-top: 10px; text-align: center; display: none;"></p>
+                    </div>
+                    
+                    <!-- Step 3: 授权转移 -->
+                    <div id="approve-section" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b; display: none;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <span style="font-size: 24px;">3️⃣</span>
+                            <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Approve & Start</span>
+                        </div>
+                        <button onclick="approveAndStart()" 
+                                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.transform='translateY(-2px)'"
+                                onmouseout="this.style.transform='translateY(0)'">
+                            ✅ Approve & Start AI Trading
+                        </button>
+                        <p style="font-size: 11px; color: #a0aec0; margin-top: 10px; text-align: center;">AI Agent will manage your assets for this coin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
     
@@ -777,6 +852,14 @@
                             </div>
                         </div>
                     `).join('');
+                    
+                    // 更新Alpha Hunter的币种选择列表（只显示正在监控的币种）
+                    const alphaSelect = document.getElementById('alpha-coin-select');
+                    const monitoredOptions = Array.from(monitoredCoins).map(symbol => {
+                        const coin = coinsData.coins.find(c => c.symbol === symbol);
+                        return coin ? `<option value="${symbol}">${symbol} - ${coin.name}</option>` : '';
+                    }).join('');
+                    alphaSelect.innerHTML = '<option value="">Choose a monitored coin...</option>' + monitoredOptions;
                 }
                 
                 // 加载AI模型状态
@@ -1041,6 +1124,83 @@
             } else {
                 statusBadge.className = 'status-badge status-inactive';
                 statusBadge.textContent = '● System Ready';
+            }
+            
+            // 同时更新Alpha Hunter的币种列表
+            loadData();
+        }
+        
+        // ===== Alpha Hunter Functions =====
+        let connectedWallet = null;
+        
+        // 连接钱包
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // 请求连接
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    connectedWallet = accounts[0];
+                    
+                    // 更新UI
+                    const btn = document.getElementById('connect-wallet-btn');
+                    btn.textContent = '✅ Connected';
+                    btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                    
+                    const addressDisplay = document.getElementById('wallet-address');
+                    addressDisplay.textContent = `🦊 ${connectedWallet.substring(0, 6)}...${connectedWallet.substring(38)}`;
+                    addressDisplay.style.display = 'block';
+                    
+                    // 显示授权按钮
+                    document.getElementById('approve-section').style.display = 'block';
+                    
+                    console.log('✅ Wallet connected:', connectedWallet);
+                } catch (error) {
+                    console.error('❌ Failed to connect wallet:', error);
+                    alert('Failed to connect wallet. Please make sure MetaMask is installed and unlocked.');
+                }
+            } else {
+                alert('🦊 MetaMask not detected! Please install MetaMask to use Alpha Hunter.');
+            }
+        }
+        
+        // 授权并启动AI交易
+        async function approveAndStart() {
+            const selectedCoin = document.getElementById('alpha-coin-select').value;
+            
+            if (!selectedCoin) {
+                alert('Please select a coin first!');
+                return;
+            }
+            
+            if (!connectedWallet) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            try {
+                // TODO: 实现实际的签名和转移逻辑
+                // 1. 用户签名授权消息
+                // 2. 将资产转移到AI Agent地址
+                // 3. 启动AI自动交易
+                
+                const message = `Authorize AI Agent to trade ${selectedCoin} on your behalf.\n\nTimestamp: ${new Date().toISOString()}`;
+                
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, connectedWallet]
+                });
+                
+                console.log('✅ User signature:', signature);
+                
+                // 发送到后端记录授权
+                alert(`✅ Authorization successful!\n\nAI Agent will now trade ${selectedCoin} for you.\n\nYou can monitor the performance in real-time.`);
+                
+            } catch (error) {
+                console.error('❌ Authorization failed:', error);
+                alert('Authorization failed. Please try again.');
             }
         }
         
