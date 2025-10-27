@@ -1366,9 +1366,9 @@ async def root():
     """根路径 - 根据配置显示不同页面"""
     from fastapi.responses import FileResponse
     
-    # 如果只启用消息交易，显示消息交易页面
+    # 如果只启用消息交易，显示新版新闻交易页面
     if settings.news_trading_enabled and not settings.enable_consensus_trading and not settings.enable_individual_trading:
-        response = FileResponse("web/news_trading.html")
+        response = FileResponse("web/news_trading_v2.html")
     else:
         # 否则显示常规交易页面
         response = FileResponse("web/consensus_arena.html")
@@ -1448,6 +1448,67 @@ async def start_news_trading():
         return {"error": str(e)}
 
 
+@app.get("/api/news_trading/ai_models")
+async def get_ai_models():
+    """获取AI模型列表及激活状态"""
+    try:
+        from news_trading.logo_config import get_ai_model_logo
+        from config.settings import get_news_trading_ais
+        
+        active_ais = get_news_trading_ais()
+        
+        ai_models = [
+            {
+                "name": "GPT-4o",
+                "provider": "OpenAI",
+                "logo": get_ai_model_logo("GPT-4o"),
+                "active": "gpt" in active_ais,
+                "key": "gpt"
+            },
+            {
+                "name": "Gemini 2.0",
+                "provider": "Google",
+                "logo": get_ai_model_logo("Gemini-2.0-Flash"),
+                "active": "gemini" in active_ais,
+                "key": "gemini"
+            },
+            {
+                "name": "Grok-4",
+                "provider": "xAI",
+                "logo": get_ai_model_logo("Grok-4-Fast"),
+                "active": "grok" in active_ais,
+                "key": "grok"
+            },
+            {
+                "name": "DeepSeek",
+                "provider": "DeepSeek AI",
+                "logo": get_ai_model_logo("DeepSeek"),
+                "active": "deepseek" in active_ais,
+                "key": "deepseek"
+            },
+            {
+                "name": "Claude 3.5",
+                "provider": "Anthropic",
+                "logo": get_ai_model_logo("Claude-3.5"),
+                "active": "claude" in active_ais,
+                "key": "claude"
+            },
+            {
+                "name": "Qwen Max",
+                "provider": "Alibaba",
+                "logo": get_ai_model_logo("Qwen-Max"),
+                "active": "qwen" in active_ais,
+                "key": "qwen"
+            }
+        ]
+        
+        return {"ai_models": ai_models}
+    
+    except Exception as e:
+        logger.error(f"❌ 获取AI模型失败: {e}", exc_info=True)
+        return {"error": str(e), "ai_models": []}
+
+
 @app.get("/api/news_trading/coins")
 async def get_monitored_coins():
     """获取所有监控的币种及其档案"""
@@ -1515,12 +1576,36 @@ async def get_coin_profile_api(coin_symbol: str):
                 for s in profile["news_sources"]
             ],
             "ai_models": [
-                {"name": "GPT-4o", "logo": get_ai_model_logo("GPT-4o")},
-                {"name": "Gemini-2.0-Flash", "logo": get_ai_model_logo("Gemini-2.0-Flash")},
-                {"name": "Grok-4-Fast", "logo": get_ai_model_logo("Grok-4-Fast")},
-                {"name": "DeepSeek", "logo": get_ai_model_logo("DeepSeek")},
-                {"name": "Claude-3.5", "logo": get_ai_model_logo("Claude-3.5")},
-                {"name": "Qwen-Max", "logo": get_ai_model_logo("Qwen-Max")},
+                {
+                    "name": "GPT-4o", 
+                    "logo": get_ai_model_logo("GPT-4o"),
+                    "active": "gpt" in get_news_trading_ais()
+                },
+                {
+                    "name": "Gemini-2.0-Flash", 
+                    "logo": get_ai_model_logo("Gemini-2.0-Flash"),
+                    "active": "gemini" in get_news_trading_ais()
+                },
+                {
+                    "name": "Grok-4-Fast", 
+                    "logo": get_ai_model_logo("Grok-4-Fast"),
+                    "active": "grok" in get_news_trading_ais()
+                },
+                {
+                    "name": "DeepSeek", 
+                    "logo": get_ai_model_logo("DeepSeek"),
+                    "active": "deepseek" in get_news_trading_ais()
+                },
+                {
+                    "name": "Claude-3.5", 
+                    "logo": get_ai_model_logo("Claude-3.5"),
+                    "active": "claude" in get_news_trading_ais()
+                },
+                {
+                    "name": "Qwen-Max", 
+                    "logo": get_ai_model_logo("Qwen-Max"),
+                    "active": "qwen" in get_news_trading_ais()
+                },
             ],
             "why_monitor": profile["why_monitor"]
         }

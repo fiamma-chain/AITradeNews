@@ -10,22 +10,22 @@ Logo Configuration - URLs for tokens, platforms, AI models, and news sources
 """
 
 # 代币Logo（本地路径）
-# 请将logo文件保存到 web/images/coins/ 目录
+# ✅ 已添加的logo文件
 COIN_LOGOS = {
-    "BTC": "/images/coins/btc.png",
-    "ETH": "/images/coins/eth.png",
-    "SOL": "/images/coins/sol.png",
-    "MON": "/images/coins/mon.png",  # Monad
-    "MEGA": "/images/coins/mega.png",  # MegaETH
-    "PING": "/images/coins/ping.png",  # PING on Base
-    "PAYAI": "/images/coins/payai.png",  # PayAI
+    "BTC": "/images/coins/btc.png",      # 需要添加
+    "ETH": "/images/coins/eth.png",      # 需要添加
+    "SOL": "/images/coins/sol.png",      # 需要添加
+    "MON": "/images/coins/monad.jpg",    # ✅ 已添加
+    "MEGA": "/images/coins/mega.jpg",    # ✅ 已添加
+    "PING": "/images/coins/ping.jpg",    # ✅ 已添加
+    "PAYAI": "/images/coins/payai.jpg",  # ✅ 已添加
 }
 
 # 交易平台Logo（使用现有文件）
 PLATFORM_LOGOS = {
-    "Hyperliquid": "/images/hyperliquid.png",
-    "Aster": "/images/aster.jpg",
-    "Uniswap V4 (Base)": "/images/uniswap.png",  # 需要添加
+    "Hyperliquid": "/images/hyperliquid.png",  # ✅ 已存在
+    "Aster": None,  # 移除Aster logo
+    "Uniswap V4 (Base)": "/images/uniswap.png",      # 需要添加
     "PancakeSwap (BSC)": "/images/pancakeswap.png",  # 需要添加
 }
 
@@ -40,13 +40,13 @@ AI_MODEL_LOGOS = {
 }
 
 # 消息来源Logo
-# 请将logo文件保存到 web/images/news_sources/ 目录
+# ✅ 已添加的logo文件
 NEWS_SOURCE_LOGOS = {
-    "Binance Spot Listing": "/images/news_sources/binance.png",
-    "Binance Futures Listing": "/images/news_sources/binance.png",
-    "Binance Alpha Project": "/images/news_sources/binance.png",
-    "Upbit Listing": "/images/news_sources/upbit.png",
-    "User Submission": "/images/news_sources/user.png",
+    "Binance Spot Listing": "/images/news_sources/binance.jpg",    # ✅ 已添加
+    "Binance Futures Listing": "/images/news_sources/binance.jpg",  # ✅ 已添加
+    "Binance Alpha Project": "/images/news_sources/binance.jpg",    # ✅ 已添加
+    "Upbit Listing": "/images/news_sources/upbit.jpg",              # ✅ 已添加
+    "User Submission": "/images/news_sources/user.png",             # 需要添加
 }
 
 
