@@ -92,7 +92,7 @@ COIN_PROFILES: Dict[str, Dict] = {
                 {
                     "exchange": "Coinbase",
                     "url": "https://www.coinbase.com",
-                    "logo": "/images/coinbase.png"
+                    "logo": "/images/news_sources/coinbase.png"
                 }
             ]
         },
@@ -177,7 +177,7 @@ COIN_PROFILES: Dict[str, Dict] = {
                 {
                     "exchange": "Coinbase",
                     "url": "https://www.coinbase.com",
-                    "logo": "/images/coinbase.png"
+                    "logo": "/images/news_sources/coinbase.png"
                 }
             ]
         },
@@ -354,7 +354,7 @@ COIN_PROFILES: Dict[str, Dict] = {
                 {
                     "exchange": "Coinbase",
                     "url": "https://www.coinbase.com",
-                    "logo": "/images/coinbase.png"
+                    "logo": "/images/news_sources/coinbase.png"
                 }
             ]
         },
