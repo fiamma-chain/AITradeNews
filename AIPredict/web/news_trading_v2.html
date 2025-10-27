@@ -45,21 +45,64 @@
         .header .subtitle {
             font-size: 18px;
             color: #a0aec0;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
-        .status-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 20px;
+        /* 关键指标 */
+        .key-metrics {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 20px 30px;
+            min-width: 200px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.6);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .metric-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
             font-size: 14px;
-            font-weight: 600;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
         
-        .status-active {
-            background: rgba(72, 187, 120, 0.2);
-            color: #48bb78;
-            border: 2px solid #48bb78;
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .metric-value.positive {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .metric-value.negative {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         /* Main Grid - 两行布局 */
@@ -136,7 +179,7 @@
         /* Item Grid */
         .item-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 20px;
         }
         
@@ -471,7 +514,37 @@
         <div class="header">
             <h1>📡 AI News Trading Monitor</h1>
             <p class="subtitle">Real-time cryptocurrency trading driven by news and AI analysis</p>
-            <span id="listener-status" class="status-badge status-inactive" style="cursor: default;">● System Ready</span>
+            
+            <!-- 关键指标 -->
+            <div class="key-metrics">
+                <!-- 总币种数 -->
+                <div class="metric-card">
+                    <div class="metric-icon">🪙</div>
+                    <div class="metric-label">Total Coins</div>
+                    <div class="metric-value" id="metric-coins">0</div>
+                </div>
+                
+                <!-- 总用户数 -->
+                <div class="metric-card">
+                    <div class="metric-icon">👥</div>
+                    <div class="metric-label">Total Users</div>
+                    <div class="metric-value" id="metric-users">0</div>
+                </div>
+                
+                <!-- 总交易量 -->
+                <div class="metric-card">
+                    <div class="metric-icon">💹</div>
+                    <div class="metric-label">Total Volume</div>
+                    <div class="metric-value" id="metric-volume">$0</div>
+                </div>
+                
+                <!-- 总盈利 -->
+                <div class="metric-card">
+                    <div class="metric-icon">💰</div>
+                    <div class="metric-label">Total Profit</div>
+                    <div class="metric-value" id="metric-profit">$0</div>
+                </div>
+            </div>
         </div>
         
         <!-- Main Grid -->
@@ -488,17 +561,10 @@
                         </div>
                     </div>
                     <div id="coin-grid" class="item-grid">
-                        <!-- 动态加载 -->
+                        <!-- 动态加载币种 -->
                     </div>
-                    <!-- 用户提交入口 -->
-                    <div style="margin-top: 20px; text-align: center;">
-                        <button onclick="showSubmitCoinFormModal()" 
-                                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
-                            ➕ Submit New Coin
-                        </button>
-                    </div>
+                    <!-- 用户提交入口 - 卡片风格 -->
+                    <div id="submit-coin-card-container"></div>
                 </div>
             </div>
             
@@ -819,15 +885,43 @@
     </div>
     
     <script>
+        // 格式化货币
+        function formatCurrency(value) {
+            if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(2) + 'M';
+            } else if (value >= 1000) {
+                return '$' + (value / 1000).toFixed(2) + 'K';
+            } else {
+                return '$' + value.toFixed(2);
+            }
+        }
+        
         // 加载数据
         async function loadData() {
             try {
-                // 加载系统状态
+                // 加载系统状态和关键指标
                 const statusResponse = await fetch('/api/news_trading/status');
                 const statusData = await statusResponse.json();
                 
-                // 更新监听器状态（保持当前显示）
-                // 状态由toggleCoinMonitor函数管理
+                // 更新关键指标
+                if (statusData.metrics) {
+                    document.getElementById('metric-coins').textContent = statusData.metrics.total_coins || 0;
+                    document.getElementById('metric-users').textContent = statusData.metrics.total_users || 0;
+                    document.getElementById('metric-volume').textContent = formatCurrency(statusData.metrics.total_volume || 0);
+                    
+                    const profit = statusData.metrics.total_profit || 0;
+                    const profitElement = document.getElementById('metric-profit');
+                    profitElement.textContent = formatCurrency(profit);
+                    
+                    // 根据盈利正负设置颜色
+                    if (profit > 0) {
+                        profitElement.className = 'metric-value positive';
+                    } else if (profit < 0) {
+                        profitElement.className = 'metric-value negative';
+                    } else {
+                        profitElement.className = 'metric-value';
+                    }
+                }
                 
                 // 加载监控的币种列表
                 const coinsResponse = await fetch('/api/news_trading/coins');
@@ -855,6 +949,23 @@
                             </div>
                         </div>
                     `).join('');
+                    
+                    // 添加"Submit New Coin"卡片到grid中
+                    const submitCardContainer = document.getElementById('submit-coin-card-container');
+                    submitCardContainer.innerHTML = `
+                        <div class="item-grid" style="margin-top: 0;">
+                            <div class="item-card" onclick="showSubmitCoinFormModal()" 
+                                 style="cursor: pointer; border: 2px dashed #667eea; position: relative; padding-bottom: 50px;"
+                                 onmouseover="this.style.borderColor='#764ba2'; this.style.transform='translateY(-4px)'"
+                                 onmouseout="this.style.borderColor='#667eea'; this.style.transform='translateY(0)'"
+                                 title="Click to submit a new coin for monitoring">
+                                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22 rx=%228%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2236%22 fill=%22white%22%3E➕%3C/text%3E%3C/svg%3E" 
+                                     alt="Submit New Coin" class="item-logo">
+                                <div class="item-name" style="color: #667eea;">Submit New</div>
+                                <div class="item-symbol" style="color: #a0aec0;">Add Coin</div>
+                            </div>
+                        </div>
+                    `;
                     
                     // 更新Alpha Hunter的币种选择列表（只显示正在监控的币种）
                     const alphaSelect = document.getElementById('alpha-coin-select');
@@ -1119,17 +1230,7 @@
         
         // 更新系统状态显示
         function updateSystemStatus() {
-            const statusBadge = document.getElementById('listener-status');
-            
-            if (monitoredCoins.size > 0) {
-                statusBadge.className = 'status-badge status-active';
-                statusBadge.textContent = `● Monitoring ${monitoredCoins.size} coin(s)`;
-            } else {
-                statusBadge.className = 'status-badge status-inactive';
-                statusBadge.textContent = '● System Ready';
-            }
-            
-            // 同时更新Alpha Hunter的币种列表
+            // 重新加载数据以更新所有指标和币种列表
             loadData();
         }
         

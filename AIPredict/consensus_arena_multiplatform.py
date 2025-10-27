@@ -1832,12 +1832,73 @@ async def submit_user_news(url: str, coin: str):
 
 @app.get("/api/news_trading/status")
 async def get_news_trading_status():
-    """获取消息交易系统状态"""
-    return {
-        "running": len(news_listeners) > 0,
-        "active_ais": list(news_handler.analyzers.keys()) if news_handler.analyzers else [],
-        "listeners": len(news_listeners)
-    }
+    """获取消息交易系统状态和关键指标"""
+    try:
+        # 计算关键指标
+        from news_trading.config import SUPPORTED_COINS
+        
+        # 总币种数
+        total_coins = len(SUPPORTED_COINS)
+        
+        # 总用户数（活跃的AI模型数）
+        total_users = len(news_handler.analyzers) if news_handler.analyzers else 0
+        
+        # 总交易量和总盈利（从Redis获取历史数据）
+        total_volume = 0.0
+        total_profit = 0.0
+        
+        try:
+            import redis
+            r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+            
+            # 遍历所有AI的交易历史
+            if news_handler.analyzers:
+                for ai_name in news_handler.analyzers.keys():
+                    # 获取该AI的交易历史
+                    trades_key = f"news_trades:{ai_name}"
+                    trades_data = r.get(trades_key)
+                    
+                    if trades_data:
+                        import json
+                        trades = json.loads(trades_data)
+                        
+                        for trade in trades:
+                            # 累加交易量（使用notional value）
+                            if 'size' in trade and 'entry_price' in trade:
+                                total_volume += abs(float(trade['size']) * float(trade['entry_price']))
+                            
+                            # 累加盈利（如果有平仓盈利记录）
+                            if 'pnl' in trade:
+                                total_profit += float(trade['pnl'])
+        
+        except Exception as redis_error:
+            logger.warning(f"⚠️  无法获取Redis交易数据: {redis_error}")
+        
+        return {
+            "running": len(news_listeners) > 0,
+            "active_ais": list(news_handler.analyzers.keys()) if news_handler.analyzers else [],
+            "listeners": len(news_listeners),
+            "metrics": {
+                "total_coins": total_coins,
+                "total_users": total_users,
+                "total_volume": round(total_volume, 2),
+                "total_profit": round(total_profit, 2)
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 获取状态失败: {e}", exc_info=True)
+        return {
+            "running": False,
+            "active_ais": [],
+            "listeners": 0,
+            "metrics": {
+                "total_coins": 0,
+                "total_users": 0,
+                "total_volume": 0.0,
+                "total_profit": 0.0
+            }
+        }
 
 
 if __name__ == "__main__":
