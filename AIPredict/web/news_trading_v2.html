@@ -561,10 +561,8 @@
                         </div>
                     </div>
                     <div id="coin-grid" class="item-grid">
-                        <!-- 动态加载币种 -->
+                        <!-- 动态加载币种 + Submit卡片 -->
                     </div>
-                    <!-- 用户提交入口 - 卡片风格 -->
-                    <div id="submit-coin-card-container"></div>
                 </div>
             </div>
             
@@ -931,7 +929,9 @@
                     document.getElementById('coin-count').textContent = coinsData.coins.length;
                     
                     const coinGrid = document.getElementById('coin-grid');
-                    coinGrid.innerHTML = coinsData.coins.map(coin => `
+                    
+                    // 渲染币种卡片
+                    const coinCards = coinsData.coins.map(coin => `
                         <div class="item-card coin-card" style="position: relative; padding-bottom: 50px;">
                             <div onclick="showCoinProfile('${coin.symbol}')" style="cursor: pointer;" title="Click to view ${coin.name} details">
                                 <img src="${coin.logo}" alt="${coin.symbol}" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2224%22 fill=%22white%22%3E${coin.symbol.substring(0,2)}%3C/text%3E%3C/svg%3E'">
@@ -950,22 +950,22 @@
                         </div>
                     `).join('');
                     
-                    // 添加"Submit New Coin"卡片到grid中
-                    const submitCardContainer = document.getElementById('submit-coin-card-container');
-                    submitCardContainer.innerHTML = `
-                        <div class="item-grid" style="margin-top: 0;">
-                            <div class="item-card" onclick="showSubmitCoinFormModal()" 
-                                 style="cursor: pointer; border: 2px dashed #667eea; position: relative; padding-bottom: 50px;"
-                                 onmouseover="this.style.borderColor='#764ba2'; this.style.transform='translateY(-4px)'"
-                                 onmouseout="this.style.borderColor='#667eea'; this.style.transform='translateY(0)'"
-                                 title="Click to submit a new coin for monitoring">
-                                <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22 rx=%228%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2236%22 fill=%22white%22%3E➕%3C/text%3E%3C/svg%3E" 
-                                     alt="Submit New Coin" class="item-logo">
-                                <div class="item-name" style="color: #667eea;">Submit New</div>
-                                <div class="item-symbol" style="color: #a0aec0;">Add Coin</div>
-                            </div>
+                    // Submit New Coin 卡片
+                    const submitCard = `
+                        <div class="item-card" onclick="showSubmitCoinFormModal()" 
+                             style="cursor: pointer; border: 2px dashed #667eea; position: relative; padding-bottom: 50px;"
+                             onmouseover="this.style.borderColor='#764ba2'; this.style.transform='translateY(-4px)'"
+                             onmouseout="this.style.borderColor='#667eea'; this.style.transform='translateY(0)'"
+                             title="Click to submit a new coin for monitoring">
+                            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22 rx=%228%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2236%22 fill=%22white%22%3E➕%3C/text%3E%3C/svg%3E" 
+                                 alt="Submit New Coin" class="item-logo">
+                            <div class="item-name" style="color: #667eea;">Submit New</div>
+                            <div class="item-symbol" style="color: #a0aec0;">Add Coin</div>
                         </div>
                     `;
+                    
+                    // 合并所有卡片：币种卡片 + Submit卡片
+                    coinGrid.innerHTML = coinCards + submitCard;
                     
                     // 更新Alpha Hunter的币种选择列表（只显示正在监控的币种）
                     const alphaSelect = document.getElementById('alpha-coin-select');
