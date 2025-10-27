@@ -1625,6 +1625,57 @@ async def get_coin_profile_api(coin_symbol: str):
         return {"error": str(e)}
 
 
+@app.post("/api/news_trading/submit_coin")
+async def submit_coin(request: dict):
+    """接收用户提交的币种"""
+    try:
+        import json
+        from datetime import datetime
+        
+        # 验证必填字段
+        required_fields = ['symbol', 'name', 'project_type', 'twitter', 'trading_link']
+        for field in required_fields:
+            if not request.get(field):
+                return {"error": f"Missing required field: {field}"}
+        
+        # 保存提交到文件
+        submission = {
+            "timestamp": datetime.now().isoformat(),
+            "symbol": request['symbol'],
+            "name": request['name'],
+            "project_type": request['project_type'],
+            "twitter": request['twitter'],
+            "trading_link": request['trading_link'],
+            "notes": request.get('notes', ''),
+            "status": "pending"
+        }
+        
+        # 追加到submissions.json文件
+        submissions_file = "coin_submissions.json"
+        try:
+            with open(submissions_file, 'r') as f:
+                submissions = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            submissions = []
+        
+        submissions.append(submission)
+        
+        with open(submissions_file, 'w') as f:
+            json.dump(submissions, f, indent=2)
+        
+        logger.info(f"✅ 新币种提交: {request['symbol']} - {request['name']}")
+        
+        return {
+            "success": True,
+            "message": "Submission received successfully",
+            "symbol": request['symbol']
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ 处理币种提交失败: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
 @app.post("/api/news_trading/stop")
 async def stop_news_trading():
     """停止消息驱动交易系统"""

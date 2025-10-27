@@ -474,6 +474,14 @@
                 <div id="coin-grid" class="item-grid">
                     <!-- 动态加载 -->
                 </div>
+                <!-- 用户提交入口 -->
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="showSubmitCoinModal()" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
+                        ➕ Submit New Coin
+                    </button>
+                </div>
             </div>
             
             <!-- 2. Trading Platforms -->
@@ -554,6 +562,11 @@
                         <div class="item-symbol">Korean Market</div>
                     </div>
                     <div class="item-card">
+                        <img src="/images/news_sources/coinbase.png" alt="Coinbase" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%230052FF%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2222%22 fill=%22white%22%3EC%3C/text%3E%3C/svg%3E'">
+                        <div class="item-name">Coinbase</div>
+                        <div class="item-symbol">US Market</div>
+                    </div>
+                    <div class="item-card">
                         <img src="/images/news_sources/user.png" alt="User Submit" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2230%22 fill=%22white%22%3E👤%3C/text%3E%3C/svg%3E'">
                         <div class="item-name">User Submit</div>
                         <div class="item-symbol">Community Input</div>
@@ -565,6 +578,117 @@
     
     <!-- Coin Detail Modal -->
     <div id="coinModal" class="modal"></div>
+    
+    <!-- Submit Coin Modal -->
+    <div id="submitCoinModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span class="modal-close" onclick="closeSubmitCoinModal()">&times;</span>
+                <h2>➕ Submit New Coin for Monitoring</h2>
+                <p style="color: #a0aec0; font-size: 14px; margin-top: 8px;">
+                    Help expand our monitoring list by submitting a new cryptocurrency
+                </p>
+            </div>
+            <div class="modal-body">
+                <form id="submitCoinForm" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- 币种符号 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Coin Symbol *
+                        </label>
+                        <input type="text" id="coinSymbol" required
+                               placeholder="e.g., MON, MEGA, PING"
+                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                               onfocus="this.style.borderColor='#667eea'"
+                               onblur="this.style.borderColor='#4a5568'">
+                    </div>
+                    
+                    <!-- 项目名称 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Project Name *
+                        </label>
+                        <input type="text" id="coinName" required
+                               placeholder="e.g., Monad, MegaETH"
+                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                               onfocus="this.style.borderColor='#667eea'"
+                               onblur="this.style.borderColor='#4a5568'">
+                    </div>
+                    
+                    <!-- 项目类型 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Project Type *
+                        </label>
+                        <select id="projectType" required
+                                style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px; cursor: pointer;"
+                                onfocus="this.style.borderColor='#667eea'"
+                                onblur="this.style.borderColor='#4a5568'">
+                            <option value="">Select project type...</option>
+                            <option value="mega">🌟 Mega Project (Pre-market to CEX)</option>
+                            <option value="normal">🔷 Normal Project (DEX to CEX)</option>
+                            <option value="meme">🎭 Meme Token (DEX to CEX)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Twitter链接 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Twitter/X Link *
+                        </label>
+                        <input type="url" id="twitterLink" required
+                               placeholder="https://twitter.com/project_handle"
+                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                               onfocus="this.style.borderColor='#667eea'"
+                               onblur="this.style.borderColor='#4a5568'">
+                    </div>
+                    
+                    <!-- 交易链接 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Trading Link *
+                        </label>
+                        <input type="url" id="tradingLink" required
+                               placeholder="https://app.hyperliquid.xyz/trade/XXX or DEX link"
+                               style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                               onfocus="this.style.borderColor='#667eea'"
+                               onblur="this.style.borderColor='#4a5568'">
+                        <p style="color: #a0aec0; font-size: 12px; margin-top: 4px;">
+                            Provide the current trading platform link (Hyperliquid, Uniswap, PancakeSwap, etc.)
+                        </p>
+                    </div>
+                    
+                    <!-- 备注 -->
+                    <div>
+                        <label style="display: block; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;">
+                            Additional Notes (Optional)
+                        </label>
+                        <textarea id="notes" rows="3"
+                                  placeholder="Any additional information about this project..."
+                                  style="width: 100%; padding: 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px; resize: vertical;"
+                                  onfocus="this.style.borderColor='#667eea'"
+                                  onblur="this.style.borderColor='#4a5568'"></textarea>
+                    </div>
+                    
+                    <!-- 提交按钮 -->
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button type="submit" 
+                                style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.transform='translateY(-2px)'"
+                                onmouseout="this.style.transform='translateY(0)'">
+                            ✅ Submit for Review
+                        </button>
+                        <button type="button" onclick="closeSubmitCoinModal()"
+                                style="flex: 0 0 120px; padding: 14px; background: #4a5568; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.background='#718096'"
+                                onmouseout="this.style.background='#4a5568'">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
     <script>
         // 加载数据
@@ -792,11 +916,66 @@
             }, 300);
         }
         
+        // 显示提交币种模态框
+        function showSubmitCoinModal() {
+            const modal = document.getElementById('submitCoinModal');
+            modal.classList.add('active');
+        }
+        
+        // 关闭提交币种模态框
+        function closeSubmitCoinModal() {
+            const modal = document.getElementById('submitCoinModal');
+            modal.classList.remove('active');
+            // 重置表单
+            document.getElementById('submitCoinForm').reset();
+        }
+        
+        // 处理提交币种表单
+        document.getElementById('submitCoinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                symbol: document.getElementById('coinSymbol').value.toUpperCase(),
+                name: document.getElementById('coinName').value,
+                project_type: document.getElementById('projectType').value,
+                twitter: document.getElementById('twitterLink').value,
+                trading_link: document.getElementById('tradingLink').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            try {
+                const response = await fetch('/api/news_trading/submit_coin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Thank you! Your submission has been received and will be reviewed shortly.');
+                    closeSubmitCoinModal();
+                } else {
+                    alert('❌ Submission failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error submitting coin:', error);
+                alert('❌ Network error. Please try again later.');
+            }
+        });
+        
         // 点击模态框外部关闭
         document.addEventListener('click', (e) => {
-            const modal = document.getElementById('coinModal');
-            if (e.target === modal) {
+            const coinModal = document.getElementById('coinModal');
+            const submitModal = document.getElementById('submitCoinModal');
+            
+            if (e.target === coinModal) {
                 closeModal();
+            }
+            if (e.target === submitModal) {
+                closeSubmitCoinModal();
             }
         });
         
@@ -804,6 +983,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
+                closeSubmitCoinModal();
             }
         });
         
