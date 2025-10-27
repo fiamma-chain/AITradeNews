@@ -32,7 +32,8 @@ from news_trading.message_listeners.binance_listener import (
 )
 from news_trading.message_listeners.upbit_listener import create_upbit_listener
 from news_trading.message_listeners.base_listener import ListingMessage
-from news_trading.config import is_supported_coin, get_news_trading_ais
+from news_trading.config import is_supported_coin
+from config.settings import get_news_trading_ais
 
 import uvicorn
 from fastapi import FastAPI
@@ -492,94 +493,101 @@ class ConsensusArena:
         logger.info(f"每组初始资金: ${settings.ai_initial_balance}")
         logger.info("=" * 80)
         
-        # 初始化 Alpha 组
-        logger.info("\n📊 初始化 Alpha 组 (DeepSeek + Claude + Grok)...")
-        alpha_ais = [
-            DeepSeekTrader(api_key=settings.deepseek_api_key),
-            ClaudeTrader(api_key=settings.claude_api_key),
-            GrokTrader(api_key=settings.grok_api_key)
-        ]
-        alpha_group = AIGroup(
-            settings.group_1_name,
-            alpha_ais,
-            settings.group_1_private_key
-        )
-        await alpha_group.initialize()
-        await alpha_group.update_stats()  # 更新初始统计数据
-        self.groups.append(alpha_group)
-        logger.info(f"✅ Alpha组初始化完成")
-        
-        # 初始化 Beta 组
-        logger.info("\n📊 初始化 Beta 组 (GPT-4 + Gemini + Qwen)...")
-        beta_ais = [
-            GPTTrader(api_key=settings.openai_api_key, model=settings.gpt_model),
-            GeminiTrader(api_key=settings.gemini_api_key),
-            QwenTrader(api_key=settings.qwen_api_key)
-        ]
-        beta_group = AIGroup(
-            settings.group_2_name,
-            beta_ais,
-            settings.group_2_private_key
-        )
-        await beta_group.initialize()
-        await beta_group.update_stats()  # 更新初始统计数据
-        self.groups.append(beta_group)
-        logger.info(f"✅ Beta组初始化完成")
+        # 检查是否启用共识交易
+        if not settings.enable_consensus_trading:
+            logger.info("\n🚫 共识交易已禁用，跳过Alpha/Beta组初始化")
+        else:
+            # 初始化 Alpha 组
+            logger.info("\n📊 初始化 Alpha 组 (DeepSeek + Claude + Grok)...")
+            alpha_ais = [
+                DeepSeekTrader(api_key=settings.deepseek_api_key),
+                ClaudeTrader(api_key=settings.claude_api_key),
+                GrokTrader(api_key=settings.grok_api_key)
+            ]
+            alpha_group = AIGroup(
+                settings.group_1_name,
+                alpha_ais,
+                settings.group_1_private_key
+            )
+            await alpha_group.initialize()
+            await alpha_group.update_stats()  # 更新初始统计数据
+            self.groups.append(alpha_group)
+            logger.info(f"✅ Alpha组初始化完成")
+            
+            # 初始化 Beta 组
+            logger.info("\n📊 初始化 Beta 组 (GPT-4 + Gemini + Qwen)...")
+            beta_ais = [
+                GPTTrader(api_key=settings.openai_api_key, model=settings.gpt_model),
+                GeminiTrader(api_key=settings.gemini_api_key),
+                QwenTrader(api_key=settings.qwen_api_key)
+            ]
+            beta_group = AIGroup(
+                settings.group_2_name,
+                beta_ais,
+                settings.group_2_private_key
+            )
+            await beta_group.initialize()
+            await beta_group.update_stats()  # 更新初始统计数据
+            self.groups.append(beta_group)
+            logger.info(f"✅ Beta组初始化完成")
         
         # 初始化独立AI交易者
-        try:
-            individual_configs = get_individual_traders_config()
-        except ValueError as e:
-            logger.error(f"\n❌ 独立AI交易者配置错误:")
-            logger.error(str(e))
-            logger.error("\n请检查 .env 文件中的独立AI交易者私钥配置")
-            return False
-        
-        if individual_configs:
-            logger.info(f"\n🎯 初始化 {len(individual_configs)} 个独立AI交易者...")
-            for config in individual_configs:
-                ai_name = config["ai_name"]
-                private_key = config["private_key"]
-                
-                logger.info(f"\n  初始化 {ai_name}-Solo...")
-                
-                # 创建AI实例
-                ai_instance = self._create_ai_instance(ai_name)
-                if not ai_instance:
-                    error_msg = (
-                        f"❌ 无法创建 {ai_name} AI实例\n"
-                        f"   可能原因：\n"
-                        f"   1. AI模型名称不支持\n"
-                        f"   2. 对应的API密钥未配置或无效\n"
-                        f"   请检查 .env 文件中的 {ai_name.upper()}_API_KEY 配置"
-                    )
-                    logger.error(error_msg)
-                    return False
-                
-                # 创建独立交易者
-                try:
-                    trader = IndividualAITrader(
-                        name=f"{ai_name}-Solo",
-                        ai_trader=ai_instance,
-                        private_key=private_key
-                    )
-                    await trader.initialize()
-                    await trader.update_stats()  # 更新初始统计数据
-                    self.individual_traders.append(trader)
-                    logger.info(f"  ✅ {ai_name}-Solo 初始化成功")
-                except Exception as e:
-                    error_msg = (
-                        f"❌ {ai_name}-Solo 初始化失败: {e}\n"
-                        f"   可能原因：\n"
-                        f"   1. 私钥格式错误\n"
-                        f"   2. 账户余额不足\n"
-                        f"   3. 网络连接问题\n"
-                        f"   请检查私钥和账户状态"
-                    )
-                    logger.error(error_msg)
-                    import traceback
-                    logger.error(traceback.format_exc())
-                    return False
+        if not settings.enable_individual_trading:
+            logger.info("\n🚫 独立AI常规交易已禁用，跳过独立AI交易者初始化")
+        else:
+            try:
+                individual_configs = get_individual_traders_config()
+            except ValueError as e:
+                logger.error(f"\n❌ 独立AI交易者配置错误:")
+                logger.error(str(e))
+                logger.error("\n请检查 .env 文件中的独立AI交易者私钥配置")
+                return False
+            
+            if individual_configs:
+                logger.info(f"\n🎯 初始化 {len(individual_configs)} 个独立AI交易者...")
+                for config in individual_configs:
+                    ai_name = config["ai_name"]
+                    private_key = config["private_key"]
+                    
+                    logger.info(f"\n  初始化 {ai_name}-Solo...")
+                    
+                    # 创建AI实例
+                    ai_instance = self._create_ai_instance(ai_name)
+                    if not ai_instance:
+                        error_msg = (
+                            f"❌ 无法创建 {ai_name} AI实例\n"
+                            f"   可能原因：\n"
+                            f"   1. AI模型名称不支持\n"
+                            f"   2. 对应的API密钥未配置或无效\n"
+                            f"   请检查 .env 文件中的 {ai_name.upper()}_API_KEY 配置"
+                        )
+                        logger.error(error_msg)
+                        return False
+                    
+                    # 创建独立交易者
+                    try:
+                        trader = IndividualAITrader(
+                            name=f"{ai_name}-Solo",
+                            ai_trader=ai_instance,
+                            private_key=private_key
+                        )
+                        await trader.initialize()
+                        await trader.update_stats()  # 更新初始统计数据
+                        self.individual_traders.append(trader)
+                        logger.info(f"  ✅ {ai_name}-Solo 初始化成功")
+                    except Exception as e:
+                        error_msg = (
+                            f"❌ {ai_name}-Solo 初始化失败: {e}\n"
+                            f"   可能原因：\n"
+                            f"   1. 私钥格式错误\n"
+                            f"   2. 账户余额不足\n"
+                            f"   3. 网络连接问题\n"
+                            f"   请检查私钥和账户状态"
+                        )
+                        logger.error(error_msg)
+                        import traceback
+                        logger.error(traceback.format_exc())
+                        return False
         
         total_participants = len(self.groups) + len(self.individual_traders)
         logger.info(f"\n🚀 系统初始化完成！共 {len(self.groups)} 个组 + {len(self.individual_traders)} 个独立交易者 = {total_participants} 个参与者")
@@ -1343,9 +1351,16 @@ async def get_decisions():
 
 @app.get("/")
 async def root():
-    """根路径"""
+    """根路径 - 根据配置显示不同页面"""
     from fastapi.responses import FileResponse
-    response = FileResponse("web/consensus_arena.html")
+    
+    # 如果只启用消息交易，显示消息交易页面
+    if settings.news_trading_enabled and not settings.enable_consensus_trading and not settings.enable_individual_trading:
+        response = FileResponse("web/news_trading.html")
+    else:
+        # 否则显示常规交易页面
+        response = FileResponse("web/consensus_arena.html")
+    
     # 禁用缓存，确保每次都加载最新版本
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"

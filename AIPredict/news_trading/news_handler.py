@@ -188,13 +188,26 @@ class NewsTradeHandler:
                         logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 无法获取账户余额，跳过")
                         continue
                     
-                    # 根据仓位比例计算实际保证金
-                    position_size_pct = strategy.margin  # 现在存储的是比例
-                    actual_margin = account_balance * position_size_pct
+                    # 根据信心度动态计算保证金比例（从配置读取范围）
+                    from config.settings import settings
+                    
+                    confidence = strategy.confidence
+                    min_margin_pct = settings.news_min_margin_pct
+                    max_margin_pct = settings.news_max_margin_pct
+                    
+                    if confidence < 60:
+                        margin_pct = min_margin_pct
+                    else:
+                        # 线性映射: 60% -> min_margin_pct, 100% -> max_margin_pct
+                        margin_pct = min_margin_pct + ((confidence - 60) / 40) * (max_margin_pct - min_margin_pct)
+                        margin_pct = min(max_margin_pct, max(min_margin_pct, margin_pct))
+                    
+                    actual_margin = account_balance * margin_pct
                     
                     logger.info(
                         f"💰 [{ai_name}] [{platform_name}] 账户余额: ${account_balance:.2f}, "
-                        f"仓位比例: {position_size_pct*100:.0f}%, "
+                        f"信心度: {confidence:.1f}%, "
+                        f"保证金比例: {margin_pct*100:.0f}% (配置: {min_margin_pct*100:.0f}%-{max_margin_pct*100:.0f}%), "
                         f"实际保证金: ${actual_margin:.2f}"
                     )
                 

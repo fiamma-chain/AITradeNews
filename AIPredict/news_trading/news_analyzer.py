@@ -99,6 +99,8 @@ class NewsAnalyzer:
     
     def _create_analysis_prompt(self, message: ListingMessage) -> str:
         """构建AI分析提示词（极速版）"""
+        from config.settings import settings
+        
         return f"""Crypto listing: {message.coin_symbol} on {message.source}
 Reliability: {message.reliability_score:.0%}
 Message: {message.raw_message[:150]}
@@ -106,14 +108,16 @@ Message: {message.raw_message[:150]}
 Decide FAST:
 TRADE: YES/NO
 DIRECTION: LONG/SHORT
-LEVERAGE: [10-40]
-POSITION_SIZE_PCT: [0.10-0.50]
-STOP_LOSS: [0.05-0.20]
-TAKE_PROFIT: [0.10-0.50]
+LEVERAGE: [{settings.news_min_leverage}-{settings.news_max_leverage}] (confidence-based: 60%={settings.news_min_leverage}x, 100%={settings.news_max_leverage}x)
 CONFIDENCE: [0-100]
 REASONING: [max 10 words]
 
-Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only trade if confidence>60%.
+Rules:
+- Leverage: scales with confidence (60%→{settings.news_min_leverage}x, 100%→{settings.news_max_leverage}x)
+- Margin: {settings.news_min_margin_pct*100:.0f}%-{settings.news_max_margin_pct*100:.0f}% of balance (confidence-based)
+- Stop loss: {settings.news_stop_loss_pct*100:.0f}% (fixed)
+- Take profit: {settings.news_take_profit_pct*100:.0f}% (fixed)
+- Only trade if confidence ≥ 60%
 """
     
     async def _simple_ai_call(self, prompt: str) -> Optional[str]:
@@ -244,11 +248,13 @@ Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only tr
                 return None
             
             # 解析交易参数
+            from config.settings import settings
+            
             direction_raw = parsed.get("DIRECTION", "LONG").upper()
             leverage = int(float(parsed.get("LEVERAGE", 20)))
-            position_size_pct = float(parsed.get("POSITION_SIZE_PCT", 0.2))  # 默认20%
-            stop_loss = float(parsed.get("STOP_LOSS", 0.10))
-            take_profit = float(parsed.get("TAKE_PROFIT", 0.25))
+            position_size_pct = float(parsed.get("POSITION_SIZE_PCT", 0.2))  # 已废弃，保留用于向后兼容
+            stop_loss = float(parsed.get("STOP_LOSS", settings.news_stop_loss_pct))
+            take_profit = float(parsed.get("TAKE_PROFIT", settings.news_take_profit_pct))
             confidence = float(parsed.get("CONFIDENCE", 50))
             reasoning = parsed.get("REASONING", "AI analysis completed")
             
@@ -264,11 +270,11 @@ Rules: 60%+ confidence=10% position, 70%=20%, 80%=30%, 90%=40%, 95%=50%. Only tr
             
             logger.info(f"📍 [{self.ai_name}] 方向解析: {direction_raw} → {direction}")
             
-            # 限制范围
-            leverage = max(10, min(leverage, 40))
-            position_size_pct = max(0.10, min(position_size_pct, 0.50))
-            stop_loss = max(0.05, min(stop_loss, 0.20))
-            take_profit = max(0.10, min(take_profit, 0.50))
+            # 限制范围（从环境变量读取）
+            leverage = max(settings.news_min_leverage, min(leverage, settings.news_max_leverage))
+            position_size_pct = 1.0  # 已废弃，保留用于向后兼容
+            stop_loss = settings.news_stop_loss_pct  # 从配置读取
+            take_profit = settings.news_take_profit_pct  # 从配置读取
             
             # 注意：这里的margin字段现在表示"仓位比例"，实际保证金将在执行时根据账户余额计算
             return TradingStrategy(

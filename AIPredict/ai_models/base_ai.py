@@ -250,9 +250,15 @@ REASONING: [your analysis reasoning, 50-100 words]
                 
                 if line.startswith('DECISION:'):
                     decision_str = line.split(':', 1)[1].strip().upper()
+                    
+                    # 🔍 调试日志：记录决策字符串
+                    logger.info(f"🔍 [{self.model_name}] 决策字符串: '{decision_str}'")
+                    
                     try:
                         decision = TradingDecision(decision_str.lower())
+                        logger.info(f"✅ [{self.model_name}] 枚举解析成功: {decision}")
                     except ValueError:
+                        logger.warning(f"⚠️ [{self.model_name}] 枚举解析失败，尝试模糊匹配")
                         # 尝试匹配部分文本
                         if 'STRONG_BUY' in decision_str or 'STRONG BUY' in decision_str:
                             decision = TradingDecision.STRONG_BUY
@@ -264,6 +270,8 @@ REASONING: [your analysis reasoning, 50-100 words]
                             decision = TradingDecision.SELL
                         else:
                             decision = TradingDecision.HOLD
+                        
+                        logger.info(f"📍 [{self.model_name}] 模糊匹配结果: {decision}")
                 
                 elif line.startswith('CONFIDENCE:'):
                     conf_str = line.split(':', 1)[1].strip()
@@ -278,7 +286,7 @@ REASONING: [your analysis reasoning, 50-100 words]
                     reasoning = line.split(':', 1)[1].strip()
         
         except Exception as e:
-            print(f"解析 AI 响应时出错: {e}")
+            logger.error(f"❌ [{self.model_name}] 解析 AI 响应时出错: {e}")
         
         return decision, confidence, reasoning
     

@@ -83,6 +83,26 @@ class Settings(BaseSettings):
     news_trading_enabled: bool = False  # 是否启用消息驱动交易
     news_trading_ais: str = "claude,gpt,deepseek"  # AI模式使用的AI列表，逗号分隔
     
+    # 消息驱动交易专用参数（与常规交易独立）
+    news_min_leverage: int = 10  # 最小杠杆倍数
+    news_max_leverage: int = 50  # 最大杠杆倍数
+    news_stop_loss_pct: float = 0.01  # 止损比例 1%
+    news_take_profit_pct: float = 0.05  # 止盈比例 5%
+    news_min_margin_pct: float = 0.30  # 最小保证金比例 30%
+    news_max_margin_pct: float = 1.00  # 最大保证金比例 100%
+    
+    # DEX交易配置（多链）
+    base_chain_enabled: bool = False  # 是否启用Base链
+    base_rpc_url: str = "https://mainnet.base.org"
+    base_private_key: str = ""  # Base链私钥
+    
+    bsc_chain_enabled: bool = False  # 是否启用BSC链
+    bsc_rpc_url: str = "https://bsc-dataseed.binance.org/"
+    bsc_private_key: str = ""  # BSC链私钥
+    
+    dex_max_slippage: float = 0.01  # DEX最大滑点 1%
+    dex_deadline_seconds: int = 300  # DEX交易截止时间（秒）
+    
     # 功能开关（性能测试）
     enable_consensus_trading: bool = True   # 是否启用共识交易（Alpha/Beta组）
     enable_individual_trading: bool = True  # 是否启用独立AI常规交易
