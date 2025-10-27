@@ -100,6 +100,10 @@ class Settings(BaseSettings):
     bsc_rpc_url: str = "https://bsc-dataseed.binance.org/"
     bsc_private_key: str = ""  # BSC链私钥
     
+    solana_chain_enabled: bool = False  # 是否启用Solana链
+    solana_rpc_url: str = "https://api.mainnet-beta.solana.com"
+    solana_private_key: str = ""  # Solana链私钥（base58格式）
+    
     dex_max_slippage: float = 0.01  # DEX最大滑点 1%
     dex_deadline_seconds: int = 300  # DEX交易截止时间（秒）
     
