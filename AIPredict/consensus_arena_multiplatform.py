@@ -1715,6 +1715,20 @@ async def submit_coin_full(request: dict):
             "why_monitor": f"Community submitted token: {request['name']}. Trading link: {request['trading_link']}"
         }
         
+        # 尝试获取Twitter头像作为Logo
+        from news_trading.logo_fetcher import fetch_twitter_avatar, get_default_logo
+        
+        logo_path = None
+        if request['twitter']:
+            try:
+                logo_path = await fetch_twitter_avatar(request['twitter'], symbol)
+                if logo_path:
+                    logger.info(f"✅ 成功获取 {symbol} 的Twitter头像")
+            except Exception as e:
+                logger.warning(f"⚠️ 获取Twitter头像失败: {e}")
+        
+        # 如果没有获取到logo，会在前端使用默认SVG占位符
+        
         # 动态添加到COIN_PROFILES
         COIN_PROFILES[symbol] = new_coin_profile
         
