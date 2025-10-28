@@ -105,6 +105,64 @@
             -webkit-text-fill-color: transparent;
         }
         
+        /* 实时活动feed */
+        .activity-feed-card {
+            min-width: 350px !important;
+        }
+        
+        .activity-feed {
+            max-height: 80px;
+            overflow: hidden;
+            position: relative;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .activity-item {
+            padding: 6px 0;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            animation: slideUp 0.5s ease-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-item .highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .activity-item .amount {
+            color: #48bb78;
+            font-weight: 700;
+        }
+        
+        .activity-item .profit {
+            color: #48bb78;
+            font-weight: 700;
+        }
+        
+        .activity-item .loss {
+            color: #f56565;
+            font-weight: 700;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         /* Main Grid - 两行布局 */
         .main-grid {
             display: flex;
@@ -538,6 +596,15 @@
                     <div class="metric-value" id="metric-volume">$0</div>
                 </div>
                 
+                <!-- 实时消息窗口 -->
+                <div class="metric-card activity-feed-card">
+                    <div class="metric-icon">📢</div>
+                    <div class="metric-label">Live Activity</div>
+                    <div id="activity-feed" class="activity-feed">
+                        <div class="activity-item">Waiting for activity...</div>
+                    </div>
+                </div>
+                
                 <!-- 总盈利 -->
                 <div class="metric-card">
                     <div class="metric-icon">💰</div>
@@ -892,6 +959,124 @@
             } else {
                 return '$' + value.toFixed(2);
             }
+        }
+        
+        // 缩短地址
+        function shortenAddress(address) {
+            if (!address) return '0x****...****';
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+        }
+        
+        // 生成随机地址
+        function generateRandomAddress() {
+            const chars = '0123456789abcdef';
+            let address = '0x';
+            for (let i = 0; i < 40; i++) {
+                address += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return address;
+        }
+        
+        // 实时活动消息管理
+        const activityMessages = [];
+        const maxMessages = 5;
+        const coins = ['MON', 'MEGA', 'PING', 'PAYAI', 'BTC', 'ETH', 'SOL'];
+        
+        // 消息模板
+        const messageTemplates = [
+            // 类型1: 用户参与监控
+            {
+                type: 'monitor',
+                generate: () => {
+                    const user = shortenAddress(generateRandomAddress());
+                    const coin = coins[Math.floor(Math.random() * coins.length)];
+                    const amount = (Math.random() * 500 + 100).toFixed(2);
+                    return `👤 <span class="highlight">${user}</span> joined <span class="highlight">${coin}</span> monitoring, <span class="amount">${amount} USDT</span>`;
+                }
+            },
+            // 类型2: 监听到代币进展
+            {
+                type: 'progress',
+                generate: () => {
+                    const coin = coins[Math.floor(Math.random() * coins.length)];
+                    const events = ['listing announcement', 'pre-market launch', 'futures contract live', 'spot trading started'];
+                    const event = events[Math.floor(Math.random() * events.length)];
+                    return `🔔 Detected <span class="highlight">${coin}</span> ${event}`;
+                }
+            },
+            // 类型3: 购买代币
+            {
+                type: 'buy_spot',
+                generate: () => {
+                    const user = shortenAddress(generateRandomAddress());
+                    const coin = coins[Math.floor(Math.random() * coins.length)];
+                    const amount = (Math.random() * 800 + 200).toFixed(2);
+                    const tp = (Math.random() * 30 + 10).toFixed(1);
+                    const sl = (Math.random() * 10 + 3).toFixed(1);
+                    return `💰 Bought <span class="highlight">${coin}</span> for <span class="highlight">${user}</span>, <span class="amount">${amount} USDT</span>, TP: <span class="profit">${tp}%</span>, SL: <span class="loss">${sl}%</span>`;
+                }
+            },
+            // 类型4: 开合约
+            {
+                type: 'open_position',
+                generate: () => {
+                    const user = shortenAddress(generateRandomAddress());
+                    const coin = coins[Math.floor(Math.random() * coins.length)];
+                    const position = (Math.random() * 1000 + 300).toFixed(2);
+                    const tp = (Math.random() * 50 + 20).toFixed(1);
+                    const sl = (Math.random() * 15 + 5).toFixed(1);
+                    return `📊 Opened <span class="highlight">${coin}</span> position for <span class="highlight">${user}</span>, <span class="amount">${position} USDT</span>, TP: <span class="profit">${tp}%</span>, SL: <span class="loss">${sl}%</span>`;
+                }
+            },
+            // 类型5: 锁定利润
+            {
+                type: 'take_profit',
+                generate: () => {
+                    const user = shortenAddress(generateRandomAddress());
+                    const coin = coins[Math.floor(Math.random() * coins.length)];
+                    const amount = (Math.random() * 600 + 150).toFixed(2);
+                    const roi = (Math.random() * 80 + 10).toFixed(2);
+                    return `🎯 Profit locked for <span class="highlight">${user}</span> on <span class="highlight">${coin}</span>, <span class="amount">${amount} USDT</span>, ROI: <span class="profit">+${roi}%</span>`;
+                }
+            }
+        ];
+        
+        // 添加新消息
+        function addActivityMessage() {
+            const template = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+            const message = template.generate();
+            
+            activityMessages.unshift(message);
+            if (activityMessages.length > maxMessages) {
+                activityMessages.pop();
+            }
+            
+            updateActivityFeed();
+        }
+        
+        // 更新活动feed显示
+        function updateActivityFeed() {
+            const feed = document.getElementById('activity-feed');
+            if (activityMessages.length === 0) {
+                feed.innerHTML = '<div class="activity-item">Waiting for activity...</div>';
+            } else {
+                feed.innerHTML = activityMessages
+                    .map(msg => `<div class="activity-item">${msg}</div>`)
+                    .join('');
+            }
+        }
+        
+        // 启动实时消息流
+        function startActivityFeed() {
+            // 初始添加几条消息
+            setTimeout(() => addActivityMessage(), 1000);
+            setTimeout(() => addActivityMessage(), 2000);
+            setTimeout(() => addActivityMessage(), 3000);
+            
+            // 每3-8秒随机添加一条新消息
+            setInterval(() => {
+                addActivityMessage();
+            }, Math.random() * 5000 + 3000);
         }
         
         // 加载数据
@@ -1507,6 +1692,9 @@
         
         // 初始加载
         loadData();
+        
+        // 启动实时消息流
+        startActivityFeed();
     </script>
 </body>
 </html>
