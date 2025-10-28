@@ -1138,9 +1138,50 @@
                                                 `;
                                             }).join('')}
                                         </div>
-                                        <div style="margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 8px; border-left: 4px solid #ffd700;">
-                                            <div style="color: #E9D5FF; font-size: 13px; margin-bottom: 6px;">📅 Next Expected</div>
-                                            <div style="color: white; font-size: 16px; font-weight: 600;">${profile.stage_progress.upcoming}</div>
+                                        <div style="margin-top: 16px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 12px; border-left: 4px solid #ffd700;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                                <div style="color: #E9D5FF; font-size: 14px; font-weight: 600;">🔮 Predict</div>
+                                                ${profile.has_prediction ? `
+                                                    <button onclick="joinPrediction('${profile.symbol}')" 
+                                                            style="padding: 6px 16px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                                            onmouseover="this.style.transform='scale(1.05)'"
+                                                            onmouseout="this.style.transform='scale(1)'">
+                                                        🎯 Join Prediction
+                                                    </button>
+                                                ` : `
+                                                    <button onclick="createPrediction('${profile.symbol}')" 
+                                                            style="padding: 6px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                                            onmouseover="this.style.transform='scale(1.05)'"
+                                                            onmouseout="this.style.transform='scale(1)'">
+                                                        ➕ Create Prediction
+                                                    </button>
+                                                `}
+                                            </div>
+                                            <div style="color: white; font-size: 15px; font-weight: 600; line-height: 1.5;">${profile.stage_progress.upcoming}</div>
+                                            ${profile.has_prediction ? `
+                                                <div style="margin-top: 12px; padding: 12px; background: rgba(72, 187, 120, 0.15); border-radius: 8px; border: 1px solid rgba(72, 187, 120, 0.3);">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                        <span style="color: #9ae6b4; font-size: 12px;">Active Predictions</span>
+                                                        <span style="color: #48bb78; font-size: 13px; font-weight: 700;">${profile.prediction_count || 0} users</span>
+                                                    </div>
+                                                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                                        <div style="flex: 1; text-align: center; padding: 6px; background: rgba(72, 187, 120, 0.2); border-radius: 6px;">
+                                                            <div style="color: #9ae6b4; font-size: 11px;">📈 Bullish</div>
+                                                            <div style="color: #48bb78; font-size: 14px; font-weight: 700;">${profile.prediction_bullish || 0}%</div>
+                                                        </div>
+                                                        <div style="flex: 1; text-align: center; padding: 6px; background: rgba(245, 101, 101, 0.2); border-radius: 6px;">
+                                                            <div style="color: #fc8181; font-size: 11px;">📉 Bearish</div>
+                                                            <div style="color: #f56565; font-size: 14px; font-weight: 700;">${profile.prediction_bearish || 0}%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ` : `
+                                                <div style="margin-top: 10px; padding: 10px; background: rgba(102, 126, 234, 0.15); border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                                                    <p style="color: #a0aec0; font-size: 12px; margin: 0; line-height: 1.5;">
+                                                        💡 Be the first to create a prediction for this milestone!
+                                                    </p>
+                                                </div>
+                                            `}
                                         </div>
                                     `;
                                 })()}
@@ -1232,6 +1273,36 @@
         function updateSystemStatus() {
             // 重新加载数据以更新所有指标和币种列表
             loadData();
+        }
+        
+        // ===== Prediction Functions =====
+        
+        // 创建预测
+        async function createPrediction(coinSymbol) {
+            try {
+                // TODO: 实现预测创建逻辑
+                alert(`🔮 Creating prediction for ${coinSymbol}...\n\nThis feature will allow you to:\n• Set prediction target (price/date)\n• Stake tokens\n• Earn rewards for accurate predictions`);
+                
+                // 这里可以打开一个预测创建模态框
+                // showCreatePredictionModal(coinSymbol);
+            } catch (error) {
+                console.error('Error creating prediction:', error);
+                alert('❌ Failed to create prediction. Please try again.');
+            }
+        }
+        
+        // 参与预测
+        async function joinPrediction(coinSymbol) {
+            try {
+                // TODO: 实现参与预测逻辑
+                alert(`🎯 Joining prediction for ${coinSymbol}...\n\nYou can:\n• Choose your prediction (Bullish/Bearish)\n• Stake tokens\n• Track your prediction performance`);
+                
+                // 这里可以打开一个预测参与模态框
+                // showJoinPredictionModal(coinSymbol);
+            } catch (error) {
+                console.error('Error joining prediction:', error);
+                alert('❌ Failed to join prediction. Please try again.');
+            }
         }
         
         // ===== Alpha Hunter Functions =====

@@ -1564,6 +1564,13 @@ async def get_coin_profile_api(coin_symbol: str):
         
         profile = get_coin_profile(coin_symbol)
         
+        # 模拟预测数据（后续可从数据库读取）
+        import random
+        has_prediction = random.choice([True, False])  # 50%概率有预测
+        prediction_count = random.randint(5, 50) if has_prediction else 0
+        prediction_bullish = random.randint(40, 80) if has_prediction else 0
+        prediction_bearish = 100 - prediction_bullish if has_prediction else 0
+        
         # 转换枚举为字符串，并添加Logo
         return {
             "symbol": coin_symbol.upper(),
@@ -1579,6 +1586,11 @@ async def get_coin_profile_api(coin_symbol: str):
             "stage_progress": profile["stage_progress"],
             "stage_links": profile.get("stage_links", {}),
             "upside_potential": profile["upside_potential"],
+            # 预测相关数据
+            "has_prediction": has_prediction,
+            "prediction_count": prediction_count,
+            "prediction_bullish": prediction_bullish,
+            "prediction_bearish": prediction_bearish,
             "trading_platforms": [
                 {"name": p.value, "logo": get_platform_logo(p.value)} 
                 for p in profile["trading_platforms"]
