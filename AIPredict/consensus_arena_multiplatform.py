@@ -1519,10 +1519,11 @@ async def get_ai_models():
 async def get_monitored_coins():
     """获取所有监控的币种及其档案"""
     try:
-        from news_trading.coin_profiles import get_all_monitored_coins, get_coin_profile
+        from news_trading.coin_profiles import COIN_PROFILES, get_coin_profile
         from news_trading.logo_config import get_coin_logo, get_platform_logo, get_news_source_logo
         
-        coins = get_all_monitored_coins()
+        # 直接从COIN_PROFILES获取所有币种（包含动态添加的）
+        coins = list(COIN_PROFILES.keys())
         profiles = []
         
         for coin in coins:
