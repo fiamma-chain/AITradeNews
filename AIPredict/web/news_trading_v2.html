@@ -1654,8 +1654,11 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ Thank you! Your coin submission has been received and will be reviewed shortly.\n\nSymbol: ' + formData.symbol);
+                    alert('✅ Coin added successfully!\n\nSymbol: ' + formData.symbol + '\nThe new coin card has been added to your monitoring list.');
                     closeSubmitCoinFormModal();
+                    
+                    // 重新加载币种列表以显示新添加的币种
+                    loadData();
                 } else {
                     alert('❌ Submission failed: ' + (result.error || 'Unknown error'));
                 }

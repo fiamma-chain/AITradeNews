@@ -1641,10 +1641,11 @@ async def get_coin_profile_api(coin_symbol: str):
 
 @app.post("/api/news_trading/submit_coin_full")
 async def submit_coin_full(request: dict):
-    """接收用户提交的完整币种信息（包含所有字段）"""
+    """接收用户提交的完整币种信息并动态创建币种配置"""
     try:
         import json
         from datetime import datetime
+        from news_trading.coin_profiles import COIN_PROFILES, ProjectType, ProjectStage, TradingPlatform, NewsSource
         
         # 验证必填字段
         required_fields = ['symbol', 'name', 'project_type', 'twitter', 'trading_link']
@@ -1652,18 +1653,86 @@ async def submit_coin_full(request: dict):
             if not request.get(field):
                 return {"error": f"Missing required field: {field}"}
         
-        # 保存提交到文件
+        symbol = request['symbol'].upper()
+        
+        # 检查是否已存在
+        if symbol in COIN_PROFILES:
+            return {"error": f"Coin {symbol} already exists"}
+        
+        # 根据project_type确定项目类型和阶段
+        project_type_map = {
+            'mega': ProjectType.MEGA,
+            'normal': ProjectType.NORMAL,
+            'meme': ProjectType.MEME
+        }
+        project_type = project_type_map.get(request['project_type'], ProjectType.NORMAL)
+        
+        # 根据项目类型确定当前阶段
+        if project_type == ProjectType.MEGA:
+            current_stage = ProjectStage.PRE_MARKET
+            next_stage = ProjectStage.CEX_SPOT
+            stage_upcoming = "CEX Spot Listing (Community Submission)"
+        else:
+            current_stage = ProjectStage.ON_CHAIN
+            next_stage = ProjectStage.CEX_ALPHA
+            stage_upcoming = "CEX Alpha + Futures (Community Submission)"
+        
+        # 创建新的币种配置
+        new_coin_profile = {
+            "name": symbol,
+            "full_name": request['name'],
+            "description": f"Community submitted: {request['name']}",
+            "twitter": request['twitter'],
+            "background": {
+                "total_funding": "Community Submission",
+                "track": "Community Token",
+                "lead_investors": "Community-driven"
+            },
+            "project_type": project_type,
+            "current_stage": current_stage,
+            "next_stage": next_stage,
+            "stage_progress": {
+                "completed": [],
+                "current": current_stage.value,
+                "upcoming": stage_upcoming
+            },
+            "stage_links": {},
+            "upside_potential": {
+                "market_position": "Community submitted token",
+                "narrative": "User-generated content",
+                "catalysts": ["Community support", "Platform listings"],
+                "risk_factors": ["Community submission - DYOR"],
+                "target_multiplier": "TBD"
+            },
+            "trading_platforms": [TradingPlatform.HYPERLIQUID, TradingPlatform.ASTER],
+            "news_sources": [
+                NewsSource.BINANCE_SPOT,
+                NewsSource.BINANCE_FUTURES,
+                NewsSource.UPBIT,
+                NewsSource.USER_SUBMIT
+            ],
+            "why_monitor": f"Community submitted token: {request['name']}. Trading link: {request['trading_link']}"
+        }
+        
+        # 动态添加到COIN_PROFILES
+        COIN_PROFILES[symbol] = new_coin_profile
+        
+        # 同时添加到SUPPORTED_COINS
+        from news_trading.config import SUPPORTED_COINS
+        if symbol not in SUPPORTED_COINS:
+            SUPPORTED_COINS.append(symbol)
+        
+        # 保存提交记录
         submission = {
             "timestamp": datetime.now().isoformat(),
-            "symbol": request['symbol'],
+            "symbol": symbol,
             "name": request['name'],
             "project_type": request['project_type'],
             "twitter": request['twitter'],
             "trading_link": request['trading_link'],
-            "status": "pending"
+            "status": "active"
         }
         
-        # 追加到submissions.json文件
         submissions_file = "coin_submissions.json"
         try:
             with open(submissions_file, 'r') as f:
@@ -1676,16 +1745,21 @@ async def submit_coin_full(request: dict):
         with open(submissions_file, 'w') as f:
             json.dump(submissions, f, indent=2)
         
-        logger.info(f"✅ 新币种提交 (完整表单): {request['symbol']} - {request['name']}")
+        logger.info(f"✅ 新币种添加成功: {symbol} - {request['name']}")
         
         return {
             "success": True,
-            "message": "Coin submission received successfully",
-            "symbol": request['symbol']
+            "message": "Coin added successfully and is now available for monitoring",
+            "symbol": symbol,
+            "coin": {
+                "symbol": symbol,
+                "name": request['name'],
+                "project_type": request['project_type']
+            }
         }
     
     except Exception as e:
-        logger.error(f"❌ 处理完整币种提交失败: {e}", exc_info=True)
+        logger.error(f"❌ 添加新币种失败: {e}", exc_info=True)
         return {"error": str(e)}
 
 
