@@ -51,9 +51,11 @@
         /* 关键指标 */
         .key-metrics {
             display: flex;
-            justify-content: center;
-            gap: 40px;
+            justify-content: space-between;
+            gap: 20px;
             margin-top: 30px;
+            max-width: 100%;
+            padding: 0;
         }
         
         .metric-card {
@@ -61,7 +63,8 @@
             border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 16px;
             padding: 20px 30px;
-            min-width: 200px;
+            min-width: 180px;
+            flex: 1;
             text-align: center;
             transition: all 0.3s ease;
         }
@@ -108,6 +111,7 @@
         /* 实时活动feed */
         .activity-feed-card {
             min-width: 350px !important;
+            flex: 2 !important;
         }
         
         .activity-feed {
@@ -596,6 +600,13 @@
                     <div class="metric-value" id="metric-volume">$0</div>
                 </div>
                 
+                <!-- 总盈利 -->
+                <div class="metric-card">
+                    <div class="metric-icon">💰</div>
+                    <div class="metric-label">Total Profit</div>
+                    <div class="metric-value" id="metric-profit">$0</div>
+                </div>
+                
                 <!-- 实时消息窗口 -->
                 <div class="metric-card activity-feed-card">
                     <div class="metric-icon">📢</div>
@@ -603,13 +614,6 @@
                     <div id="activity-feed" class="activity-feed">
                         <div class="activity-item">Waiting for activity...</div>
                     </div>
-                </div>
-                
-                <!-- 总盈利 -->
-                <div class="metric-card">
-                    <div class="metric-icon">💰</div>
-                    <div class="metric-label">Total Profit</div>
-                    <div class="metric-value" id="metric-profit">$0</div>
                 </div>
             </div>
         </div>
