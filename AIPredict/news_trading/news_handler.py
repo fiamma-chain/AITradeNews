@@ -26,7 +26,7 @@ class NewsTradeHandler:
         
         logger.info("🚀 消息交易处理器初始化")
     
-    def setup(self, individual_traders: List, configured_ais: List[str], ai_api_keys: dict):
+    def setup(self, individual_traders: List, configured_ais: List[str], ai_api_keys: dict, monitored_coins: List[str] = None):
         """
         配置处理器
         
@@ -34,9 +34,11 @@ class NewsTradeHandler:
             individual_traders: Arena的独立AI交易者列表
             configured_ais: 配置的AI名称列表（如 ['claude', 'gpt', 'deepseek']）
             ai_api_keys: AI的API密钥字典
+            monitored_coins: 监控的币种列表（如 ['PING', 'MON']），如果为None则监控所有
         """
         self.individual_traders = individual_traders
         self.configured_ais = [ai.lower() for ai in configured_ais]
+        self.monitored_coins = [coin.upper() for coin in monitored_coins] if monitored_coins else None
         
         # 为每个配置的AI创建分析器
         for trader in individual_traders:
@@ -65,6 +67,12 @@ class NewsTradeHandler:
             message: 上币消息
         """
         coin = message.coin_symbol
+        
+        # 过滤：只处理监控的币种
+        if self.monitored_coins and coin.upper() not in self.monitored_coins:
+            logger.info(f"⏭️  [消息交易] 跳过未监控的币种: {coin} (监控列表: {self.monitored_coins})")
+            return
+        
         logger.info(f"📬 [消息交易] 收到上币消息: {coin} (来源: {message.source})")
         logger.info(f"🤖 准备让 {len(self.analyzers)} 个AI分析...")
         

@@ -243,10 +243,10 @@ COIN_PROFILES: Dict[str, Dict] = {
         "stage_links": {
             "On-chain Trading": [
                 {
-                    "platform": "Uniswap V4",
+                    "platform": "Uniswap V4 on Base",
                     "platform_short": "Uni",
                     "url": "https://app.uniswap.org/explore/tokens/base/0xd85c31854c2b0fb40aaa9e2fc4da23c21f829d46",
-                    "logo": "/images/uniswap.png"
+                    "logo": "/images/trade_platforms/uniswap.png"
                 }
             ],
             "CEX Alpha + Futures": [

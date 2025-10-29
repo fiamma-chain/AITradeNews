@@ -29,6 +29,9 @@ class UpbitAnnouncementListener(BaseMessageListener):
         self.api_url = "https://api-manager.upbit.com/api/v1/notices"
         self.seen_notice_ids = set()
         self.last_check_time = None
+        
+        logger.info(f"🔧 [upbit] 监听器初始化")
+        logger.info(f"   URL: {self.api_url}")
     
     async def connect(self):
         """（此监听器不需要WebSocket连接）"""
@@ -54,18 +57,37 @@ class UpbitAnnouncementListener(BaseMessageListener):
     async def _poll_announcements(self):
         """轮询公告"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            # 使用代理访问 Upbit API（如果配置了代理）
+            import os
+            proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
+            
+            client_kwargs = {"timeout": 10.0}
+            if proxy:
+                client_kwargs["proxy"] = proxy
+            
+            # 添加真实的请求头
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "application/json",
+                "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
+            }
+            
+            async with httpx.AsyncClient(**client_kwargs) as client:
                 response = await client.get(
                     self.api_url,
                     params={
                         "page": 1,
                         "per_page": 20,
                         "thread_name": "general"  # 一般公告
-                    }
+                    },
+                    headers=headers
                 )
                 
                 if response.status_code != 200:
-                    logger.warning(f"⚠️ [upbit] API返回异常状态码: {response.status_code}")
+                    logger.warning(f"⚠️ [upbit] API调用失败")
+                    logger.warning(f"   URL: {self.api_url}")
+                    logger.warning(f"   状态码: {response.status_code}")
+                    logger.warning(f"   响应: {response.text[:200]}")
                     return
                 
                 data = response.json()

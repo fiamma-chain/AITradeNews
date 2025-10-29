@@ -25,12 +25,12 @@ from utils.redis_manager import redis_manager
 # 消息驱动交易系统
 from news_trading.news_handler import news_handler
 from news_trading.url_scraper import scrape_url_content
-from news_trading.message_listeners.binance_listener import (
+from news_trading.message_listeners.binance_listing_listener import (
     create_binance_spot_listener,
-    create_binance_futures_listener,
-    create_binance_alpha_listener
+    create_binance_futures_listener
 )
-from news_trading.message_listeners.upbit_listener import create_upbit_listener
+from news_trading.message_listeners.binance_listener import create_binance_alpha_listener
+from news_trading.message_listeners.upbit_listing_listener import create_upbit_listener
 from news_trading.message_listeners.coinbase_listener import create_coinbase_listener
 from news_trading.message_listeners.base_listener import ListingMessage
 from news_trading.config import is_supported_coin
@@ -79,14 +79,13 @@ class IndividualAITrader:
         # 创建多平台交易管理器
         self.multi_trader = MultiPlatformTrader()
         
-        # 🎯 独立AI交易者：只在 Aster 平台下单
-        logger.info(f"[{name}] 独立AI交易者 - 仅在 Aster 平台交易")
-        client = AsterClient(private_key, settings.aster_testnet)
-        self.multi_trader.add_platform(client, f"{name}-Aster")
+        # 🎯 独立AI交易者：只在 Hyperliquid 平台下单
+        logger.info(f"[{name}] 独立AI交易者 - 仅在 Hyperliquid 平台交易")
+        client = HyperliquidClient(private_key, settings.hyperliquid_testnet)
+        self.multi_trader.add_platform(client, f"{name}-Hyperliquid")
         
-        # 创建用于获取市场数据的 Hyperliquid 客户端（不用于交易）
-        logger.info(f"[{name}] 📊 创建 Hyperliquid 数据源客户端（仅用于获取市场数据）")
-        self.data_source_client = HyperliquidClient(private_key, settings.hyperliquid_testnet)
+        # Hyperliquid 同时作为交易平台和数据源
+        self.data_source_client = client
         
         # 保存用于获取市场数据的客户端
         if self.data_source_client:
@@ -549,9 +548,17 @@ class ConsensusArena:
             logger.info(f"✅ Beta组初始化完成")
         
         # 初始化独立AI交易者
-        if not settings.enable_individual_trading:
-            logger.info("\n🚫 独立AI常规交易已禁用，跳过独立AI交易者初始化")
+        # 如果启用了独立交易或消息驱动交易，都需要初始化独立AI交易者
+        # 通过检查是否配置了NEWS_TRADING_AIS来判断是否启用消息驱动交易
+        news_trading_enabled = bool(get_news_trading_ais())
+        need_individual_traders = settings.enable_individual_trading or news_trading_enabled
+        
+        if not need_individual_traders:
+            logger.info("\n🚫 独立AI常规交易和消息驱动交易均已禁用，跳过独立AI交易者初始化")
         else:
+            if not settings.enable_individual_trading and news_trading_enabled:
+                logger.info("\n📢 为消息驱动交易初始化独立AI交易者...")
+            
             try:
                 individual_configs = get_individual_traders_config()
             except ValueError as e:
@@ -559,6 +566,15 @@ class ConsensusArena:
                 logger.error(str(e))
                 logger.error("\n请检查 .env 文件中的独立AI交易者私钥配置")
                 return False
+            
+            # 如果仅消息驱动模式，只初始化NEWS_TRADING_AIS中配置的AI
+            if not settings.enable_individual_trading and news_trading_enabled:
+                news_trading_ais = get_news_trading_ais()
+                individual_configs = [
+                    config for config in individual_configs 
+                    if config["ai_name"].lower() in news_trading_ais
+                ]
+                logger.info(f"🎯 仅初始化消息驱动交易所需的AI: {news_trading_ais}")
             
             if individual_configs:
                 logger.info(f"\n🎯 初始化 {len(individual_configs)} 个独立AI交易者...")
@@ -1391,7 +1407,7 @@ app.mount("/web", StaticFiles(directory="web"), name="web")
 # ================== 消息驱动交易API ==================
 
 @app.post("/api/news_trading/start")
-async def start_news_trading():
+async def start_news_trading(request: dict = None):
     """启动消息驱动交易系统"""
     global news_listeners, news_listener_tasks
     
@@ -1403,6 +1419,17 @@ async def start_news_trading():
         return {"error": "Arena未启动或没有独立AI交易者"}
     
     try:
+        # 获取前端传递的激活币种列表
+        monitored_coins = []
+        if request and 'coins' in request:
+            monitored_coins = [coin.upper() for coin in request['coins']]
+            logger.info(f"📡 前端激活的监控币种: {monitored_coins}")
+        else:
+            # 如果前端未传递，使用所有配置的币种
+            from news_trading.config import SUPPORTED_COINS
+            monitored_coins = [coin.upper() for coin in SUPPORTED_COINS]
+            logger.info(f"📡 使用所有配置的监控币种: {monitored_coins}")
+        
         # 获取配置的AI列表
         configured_ais = get_news_trading_ais()
         if not configured_ais:
@@ -1419,11 +1446,12 @@ async def start_news_trading():
             "qwen": settings.qwen_api_key
         }
         
-        # 配置处理器
+        # 配置处理器（包含监控币种列表）
         news_handler.setup(
             individual_traders=arena.individual_traders,
             configured_ais=configured_ais,
-            ai_api_keys=ai_api_keys
+            ai_api_keys=ai_api_keys,
+            monitored_coins=monitored_coins  # 传递监控币种列表
         )
         
         # 创建消息监听器
@@ -1697,7 +1725,7 @@ async def submit_coin_full(request: dict):
                 "current": current_stage.value,
                 "upcoming": stage_upcoming
             },
-            "stage_links": {},
+            "stage_links": {},  # 将在下面根据trading_link填充
             "upside_potential": {
                 "market_position": "Community submitted token",
                 "narrative": "User-generated content",
@@ -1715,15 +1743,71 @@ async def submit_coin_full(request: dict):
             "why_monitor": f"Community submitted token: {request['name']}. Trading link: {request['trading_link']}"
         }
         
+        # 根据trading_link自动填充stage_links
+        trading_link = request['trading_link']
+        stage_name = current_stage.value  # 例如："On-chain Trading"
+        
+        # 检测交易平台并生成相应的链接
+        platform_info = None
+        if 'uniswap' in trading_link.lower():
+            platform_info = {
+                "platform": "Uniswap V4" if "v4" in trading_link.lower() else "Uniswap",
+                "platform_short": "Uni",
+                "url": trading_link,
+                "logo": "/images/trade_platforms/uniswap.png"
+            }
+        elif 'pancakeswap' in trading_link.lower():
+            platform_info = {
+                "platform": "PancakeSwap",
+                "platform_short": "Cake",
+                "url": trading_link,
+                "logo": "/images/trade_platforms/pancakeswap.png"
+            }
+        elif 'raydium' in trading_link.lower():
+            platform_info = {
+                "platform": "Raydium",
+                "platform_short": "Ray",
+                "url": trading_link,
+                "logo": "/images/raydium.jpg"
+            }
+        elif 'hyperliquid' in trading_link.lower():
+            platform_info = {
+                "platform": "Hyperliquid",
+                "platform_short": "HL",
+                "url": trading_link,
+                "logo": "/images/hyperliquid.png"
+            }
+        elif 'aster' in trading_link.lower():
+            platform_info = {
+                "platform": "Aster",
+                "platform_short": "AS",
+                "url": trading_link,
+                "logo": "/images/aster.jpg"
+            }
+        else:
+            # 通用链接
+            platform_info = {
+                "platform": "Trading Platform",
+                "platform_short": "DEX",
+                "url": trading_link,
+                "logo": None
+            }
+        
+        if platform_info:
+            new_coin_profile["stage_links"][stage_name] = [platform_info]
+        
         # 尝试获取Twitter头像作为Logo
         from news_trading.logo_fetcher import fetch_twitter_avatar, get_default_logo
+        from news_trading.logo_config import COIN_LOGOS
         
         logo_path = None
         if request['twitter']:
             try:
                 logo_path = await fetch_twitter_avatar(request['twitter'], symbol)
                 if logo_path:
-                    logger.info(f"✅ 成功获取 {symbol} 的Twitter头像")
+                    logger.info(f"✅ 成功获取 {symbol} 的Twitter头像: {logo_path}")
+                    # 动态添加到COIN_LOGOS字典中
+                    COIN_LOGOS[symbol] = logo_path
             except Exception as e:
                 logger.warning(f"⚠️ 获取Twitter头像失败: {e}")
         

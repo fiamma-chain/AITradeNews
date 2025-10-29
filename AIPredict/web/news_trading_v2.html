@@ -320,17 +320,52 @@
             position: relative;
         }
         
-        .coin-card::before {
-            content: '';
+        /* 监控中的币种卡片 */
+        .coin-card.monitoring {
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(56, 161, 105, 0.2) 100%);
+            border: 2px solid #48bb78;
+            box-shadow: 0 0 20px rgba(72, 187, 120, 0.4);
+        }
+        
+        .coin-card.monitoring:hover {
+            border-color: #48bb78;
+            box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* 监控状态徽章 */
+        .monitor-badge {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 12px;
-            height: 12px;
-            background: #48bb78;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #48bb78;
-            animation: pulse 2s infinite;
+            top: 8px;
+            right: 8px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+        
+        .monitor-badge.badge-active {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(72, 187, 120, 0.5);
+            animation: badgePulse 2s infinite;
+        }
+        
+        .monitor-badge.badge-inactive {
+            background: rgba(160, 174, 192, 0.2);
+            color: #a0aec0;
+            border: 1px solid rgba(160, 174, 192, 0.3);
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% {
+                box-shadow: 0 2px 8px rgba(72, 187, 120, 0.5);
+            }
+            50% {
+                box-shadow: 0 2px 16px rgba(72, 187, 120, 0.9);
+            }
         }
         
         @keyframes pulse {
@@ -662,10 +697,26 @@
                             <p style="font-size: 12px; color: #a0aec0; margin-top: 8px;">Select from actively monitored coins</p>
                         </div>
                         
-                        <!-- Step 2: 连接钱包 -->
+                        <!-- Step 2: 输入投资金额 -->
                         <div style="flex: 1; background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 12px; border-left: 4px solid #f59e0b;">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
                                 <span style="font-size: 24px;">2️⃣</span>
+                                <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Enter Amount</span>
+                            </div>
+                            <div style="position: relative;">
+                                <input type="number" id="investment-amount" min="10" step="10" placeholder="1000"
+                                       style="width: 100%; padding: 12px 50px 12px 12px; background: #2d3748; border: 2px solid #4a5568; border-radius: 8px; color: white; font-size: 14px;"
+                                       onfocus="this.style.borderColor='#f59e0b'"
+                                       onblur="this.style.borderColor='#4a5568'">
+                                <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #a0aec0; font-weight: 600; font-size: 14px;">USDT</span>
+                            </div>
+                            <p style="font-size: 12px; color: #a0aec0; margin-top: 8px;">Minimum: 10 USDT</p>
+                        </div>
+                        
+                        <!-- Step 3: 连接钱包 -->
+                        <div style="flex: 1; background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                <span style="font-size: 24px;">3️⃣</span>
                                 <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Connect Wallet</span>
                             </div>
                             <button id="connect-wallet-btn" onclick="connectWallet()" 
@@ -677,10 +728,10 @@
                             <p id="wallet-address" style="font-size: 12px; color: #48bb78; margin-top: 10px; text-align: center; display: none;"></p>
                         </div>
                         
-                        <!-- Step 3: 授权转移 -->
+                        <!-- Step 4: 授权转移 -->
                         <div id="approve-section" style="flex: 1; background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 12px; border-left: 4px solid #f59e0b; display: none;">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                                <span style="font-size: 24px;">3️⃣</span>
+                                <span style="font-size: 24px;">4️⃣</span>
                                 <span style="font-size: 18px; font-weight: 600; color: #f59e0b;">Approve & Start</span>
                             </div>
                             <button onclick="approveAndStart()" 
@@ -982,79 +1033,16 @@
         }
         
         // 实时活动消息管理
+        // 真实活动消息数组
         const activityMessages = [];
-        const maxMessages = 5;
-        const coins = ['MON', 'MEGA', 'PING', 'PAYAI', 'BTC', 'ETH', 'SOL'];
+        const maxMessages = 10;
         
-        // 消息模板
-        const messageTemplates = [
-            // 类型1: 用户参与监控
-            {
-                type: 'monitor',
-                generate: () => {
-                    const user = shortenAddress(generateRandomAddress());
-                    const coin = coins[Math.floor(Math.random() * coins.length)];
-                    const amount = (Math.random() * 500 + 100).toFixed(2);
-                    return `👤 <span class="highlight">${user}</span> joined <span class="highlight">${coin}</span> monitoring, <span class="amount">${amount} USDT</span>`;
-                }
-            },
-            // 类型2: 监听到代币进展
-            {
-                type: 'progress',
-                generate: () => {
-                    const coin = coins[Math.floor(Math.random() * coins.length)];
-                    const events = ['listing announcement', 'pre-market launch', 'futures contract live', 'spot trading started'];
-                    const event = events[Math.floor(Math.random() * events.length)];
-                    return `🔔 Detected <span class="highlight">${coin}</span> ${event}`;
-                }
-            },
-            // 类型3: 购买代币
-            {
-                type: 'buy_spot',
-                generate: () => {
-                    const user = shortenAddress(generateRandomAddress());
-                    const coin = coins[Math.floor(Math.random() * coins.length)];
-                    const amount = (Math.random() * 800 + 200).toFixed(2);
-                    const tp = (Math.random() * 30 + 10).toFixed(1);
-                    const sl = (Math.random() * 10 + 3).toFixed(1);
-                    return `💰 Bought <span class="highlight">${coin}</span> for <span class="highlight">${user}</span>, <span class="amount">${amount} USDT</span>, TP: <span class="profit">${tp}%</span>, SL: <span class="loss">${sl}%</span>`;
-                }
-            },
-            // 类型4: 开合约
-            {
-                type: 'open_position',
-                generate: () => {
-                    const user = shortenAddress(generateRandomAddress());
-                    const coin = coins[Math.floor(Math.random() * coins.length)];
-                    const position = (Math.random() * 1000 + 300).toFixed(2);
-                    const tp = (Math.random() * 50 + 20).toFixed(1);
-                    const sl = (Math.random() * 15 + 5).toFixed(1);
-                    return `📊 Opened <span class="highlight">${coin}</span> position for <span class="highlight">${user}</span>, <span class="amount">${position} USDT</span>, TP: <span class="profit">${tp}%</span>, SL: <span class="loss">${sl}%</span>`;
-                }
-            },
-            // 类型5: 锁定利润
-            {
-                type: 'take_profit',
-                generate: () => {
-                    const user = shortenAddress(generateRandomAddress());
-                    const coin = coins[Math.floor(Math.random() * coins.length)];
-                    const amount = (Math.random() * 600 + 150).toFixed(2);
-                    const roi = (Math.random() * 80 + 10).toFixed(2);
-                    return `🎯 Profit locked for <span class="highlight">${user}</span> on <span class="highlight">${coin}</span>, <span class="amount">${amount} USDT</span>, ROI: <span class="profit">+${roi}%</span>`;
-                }
-            }
-        ];
-        
-        // 添加新消息
-        function addActivityMessage() {
-            const template = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
-            const message = template.generate();
-            
+        // 添加真实活动消息
+        function addActivityMessage(message) {
             activityMessages.unshift(message);
             if (activityMessages.length > maxMessages) {
                 activityMessages.pop();
             }
-            
             updateActivityFeed();
         }
         
@@ -1070,17 +1058,10 @@
             }
         }
         
-        // 启动实时消息流
+        // 启动实时消息流（现在只显示真实消息）
         function startActivityFeed() {
-            // 初始添加几条消息
-            setTimeout(() => addActivityMessage(), 1000);
-            setTimeout(() => addActivityMessage(), 2000);
-            setTimeout(() => addActivityMessage(), 3000);
-            
-            // 每3-8秒随机添加一条新消息
-            setInterval(() => {
-                addActivityMessage();
-            }, Math.random() * 5000 + 3000);
+            // 不再生成模拟消息，只等待真实事件
+            console.log('📡 Live Activity Feed ready - waiting for real events...');
         }
         
         // 加载数据
@@ -1121,7 +1102,8 @@
                     
                     // 渲染币种卡片
                     const coinCards = coinsData.coins.map(coin => `
-                        <div class="item-card coin-card" style="position: relative; padding-bottom: 50px;">
+                        <div class="item-card coin-card" id="coin-card-${coin.symbol}" style="position: relative; padding-bottom: 50px;">
+                            <div class="monitor-badge badge-inactive" id="badge-${coin.symbol}">Stopped</div>
                             <div onclick="showCoinProfile('${coin.symbol}')" style="cursor: pointer;" title="Click to view ${coin.name} details">
                                 <img src="${coin.logo}" alt="${coin.symbol}" class="item-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23667eea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2224%22 fill=%22white%22%3E${coin.symbol.substring(0,2)}%3C/text%3E%3C/svg%3E'">
                                 <div class="item-name">${coin.symbol}</div>
@@ -1155,6 +1137,26 @@
                     
                     // 合并所有卡片：币种卡片 + Submit卡片
                     coinGrid.innerHTML = coinCards + submitCard;
+                    
+                    // 恢复监控状态（重要：在重新渲染后恢复状态）
+                    monitoredCoins.forEach(coinSymbol => {
+                        const card = document.getElementById(`coin-card-${coinSymbol}`);
+                        const badge = document.getElementById(`badge-${coinSymbol}`);
+                        const btn = document.getElementById(`monitor-btn-${coinSymbol}`);
+                        
+                        if (card && badge && btn) {
+                            // 恢复卡片监控状态
+                            card.classList.add('monitoring');
+                            
+                            // 恢复徽章状态
+                            badge.className = 'monitor-badge badge-active';
+                            badge.textContent = 'Live';
+                            
+                            // 恢复按钮状态
+                            btn.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+                            btn.textContent = '⏹ Stop';
+                        }
+                    });
                     
                     // 更新Alpha Hunter的币种选择列表（只显示正在监控的币种）
                     const alphaSelect = document.getElementById('alpha-coin-select');
@@ -1403,31 +1405,53 @@
         // 切换币种监控
         async function toggleCoinMonitor(coinSymbol) {
             const btn = document.getElementById(`monitor-btn-${coinSymbol}`);
+            const card = document.getElementById(`coin-card-${coinSymbol}`);
+            const badge = document.getElementById(`badge-${coinSymbol}`);
             const isMonitoring = monitoredCoins.has(coinSymbol);
             
             if (!isMonitoring) {
                 // 启动监控
                 try {
-                    // 如果是第一个币种，先启动系统
-                    if (monitoredCoins.size === 0) {
-                        const startResponse = await fetch('/api/news_trading/start', { method: 'POST' });
+                    // 添加到监控列表
+                    monitoredCoins.add(coinSymbol);
+                    
+                    // 如果是第一个币种，先启动系统并传递监控币种列表
+                    if (monitoredCoins.size === 1) {
+                        const startResponse = await fetch('/api/news_trading/start', { 
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                coins: Array.from(monitoredCoins)
+                            })
+                        });
                         const startResult = await startResponse.json();
                         
                         if (!startResponse.ok) {
+                            // 如果启动失败，从监控列表中移除
+                            monitoredCoins.delete(coinSymbol);
                             alert('❌ Failed to start system: ' + (startResult.error || startResult.message || 'Unknown error'));
                             return;
                         }
                     }
                     
-                    // 添加到监控列表
-                    monitoredCoins.add(coinSymbol);
+                    // 更新卡片状态 - 绿色发光边框
+                    card.classList.add('monitoring');
                     
-                    // 更新按钮状态
+                    // 更新徽章状态 - 绿色发光动画
+                    badge.className = 'monitor-badge badge-active';
+                    badge.textContent = 'Live';
+                    
+                    // 更新按钮状态 - 红色停止按钮
                     btn.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
                     btn.textContent = '⏹ Stop';
                     
                     // 更新系统状态
                     updateSystemStatus();
+                    
+                    // 添加活动消息
+                    addActivityMessage(`🔔 Started monitoring <span class="highlight">${coinSymbol}</span> - Binance Spot Listener Active`);
                     
                     console.log(`✅ Started monitoring ${coinSymbol}`);
                 } catch (error) {
@@ -1438,7 +1462,14 @@
                 // 停止监控
                 monitoredCoins.delete(coinSymbol);
                 
-                // 更新按钮状态
+                // 移除卡片监控状态
+                card.classList.remove('monitoring');
+                
+                // 更新徽章状态 - 灰色停止
+                badge.className = 'monitor-badge badge-inactive';
+                badge.textContent = 'Stopped';
+                
+                // 更新按钮状态 - 绿色启动按钮
                 btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
                 btn.textContent = '▶ Monitor';
                 
@@ -1533,14 +1564,20 @@
         // 授权并启动AI交易
         async function approveAndStart() {
             const selectedCoin = document.getElementById('alpha-coin-select').value;
+            const investmentAmount = document.getElementById('investment-amount').value;
             
             if (!selectedCoin) {
-                alert('Please select a coin first!');
+                alert('⚠️ Please select a coin first!');
+                return;
+            }
+            
+            if (!investmentAmount || investmentAmount < 10) {
+                alert('⚠️ Please enter a valid investment amount (minimum 10 USDT)');
                 return;
             }
             
             if (!connectedWallet) {
-                alert('Please connect your wallet first!');
+                alert('⚠️ Please connect your wallet first!');
                 return;
             }
             
@@ -1550,7 +1587,7 @@
                 // 2. 将资产转移到AI Agent地址
                 // 3. 启动AI自动交易
                 
-                const message = `Authorize AI Agent to trade ${selectedCoin} on your behalf.\n\nTimestamp: ${new Date().toISOString()}`;
+                const message = `Authorize AI Agent to trade ${selectedCoin} on your behalf.\n\nInvestment Amount: ${investmentAmount} USDT\nTimestamp: ${new Date().toISOString()}`;
                 
                 const signature = await window.ethereum.request({
                     method: 'personal_sign',
@@ -1558,9 +1595,14 @@
                 });
                 
                 console.log('✅ User signature:', signature);
+                console.log('📊 Investment details:', {
+                    coin: selectedCoin,
+                    amount: investmentAmount,
+                    wallet: connectedWallet
+                });
                 
                 // 发送到后端记录授权
-                alert(`✅ Authorization successful!\n\nAI Agent will now trade ${selectedCoin} for you.\n\nYou can monitor the performance in real-time.`);
+                alert(`✅ Authorization successful!\n\nCoin: ${selectedCoin}\nInvestment: ${investmentAmount} USDT\n\nAI Agent will now trade ${selectedCoin} for you.\n\nYou can monitor the performance in real-time.`);
                 
             } catch (error) {
                 console.error('❌ Authorization failed:', error);

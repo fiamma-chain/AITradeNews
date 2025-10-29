@@ -1,10 +1,16 @@
 """
 配置管理模块
 """
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"  # 忽略未定义的字段
+    )
     """应用配置"""
     
     # 交易平台配置
@@ -87,6 +93,9 @@ class Settings(BaseSettings):
     news_min_leverage: int = 10  # 最小杠杆倍数
     news_max_leverage: int = 50  # 最大杠杆倍数
     news_stop_loss_pct: float = 0.01  # 止损比例 1%
+    
+    # 测试模式配置
+    news_trading_test_mode: bool = False  # 测试模式：把已上线的币种当作新上线处理
     news_take_profit_pct: float = 0.05  # 止盈比例 5%
     news_min_margin_pct: float = 0.30  # 最小保证金比例 30%
     news_max_margin_pct: float = 1.00  # 最大保证金比例 100%
@@ -111,9 +120,9 @@ class Settings(BaseSettings):
     enable_consensus_trading: bool = True   # 是否启用共识交易（Alpha/Beta组）
     enable_individual_trading: bool = True  # 是否启用独立AI常规交易
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    # 代理配置（可选，用于访问被墙的API如Binance）
+    http_proxy: str = ""
+    https_proxy: str = ""
 
 
 # 全局配置实例

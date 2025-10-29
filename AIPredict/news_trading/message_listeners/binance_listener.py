@@ -37,6 +37,10 @@ class BinanceAnnouncementListener(BaseMessageListener):
         self.api_url = "https://www.binance.com/bapi/composite/v1/public/cms/article/list/query"
         self.seen_article_ids = set()  # 已处理的公告ID
         self.last_check_time = None
+        
+        logger.info(f"🔧 [{self.source.value}] 监听器初始化")
+        logger.info(f"   URL: {self.api_url}")
+        logger.info(f"   catalogId: {self.catalog_id}")
     
     async def connect(self):
         """（此监听器不需要WebSocket连接）"""
@@ -62,7 +66,25 @@ class BinanceAnnouncementListener(BaseMessageListener):
     async def _poll_announcements(self):
         """轮询公告"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            # 使用代理访问 Binance API（如果配置了代理）
+            import os
+            proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
+            
+            client_kwargs = {"timeout": 10.0}
+            if proxy:
+                client_kwargs["proxy"] = proxy
+                logger.debug(f"使用代理: {proxy}")
+            
+            async with httpx.AsyncClient(**client_kwargs) as client:
+                # 添加真实的请求头，避免被反爬虫拦截
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/json",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Origin": "https://www.binance.com",
+                    "Referer": "https://www.binance.com/"
+                }
+                
                 response = await client.post(
                     self.api_url,
                     json={
@@ -70,11 +92,16 @@ class BinanceAnnouncementListener(BaseMessageListener):
                         "catalogId": self.catalog_id,
                         "pageNo": 1,
                         "pageSize": 10
-                    }
+                    },
+                    headers=headers
                 )
                 
                 if response.status_code != 200:
-                    logger.warning(f"⚠️ [{self.source.value}] API返回异常状态码: {response.status_code}")
+                    logger.warning(f"⚠️ [{self.source.value}] API调用失败")
+                    logger.warning(f"   URL: {self.api_url}")
+                    logger.warning(f"   catalogId: {self.catalog_id}")
+                    logger.warning(f"   状态码: {response.status_code}")
+                    logger.warning(f"   响应: {response.text[:200]}")
                     return
                 
                 data = response.json()

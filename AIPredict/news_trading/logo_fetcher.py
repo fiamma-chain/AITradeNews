@@ -62,31 +62,51 @@ async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
         except Exception as e:
             logger.warning(f"⚠️ 直接访问Twitter失败: {e}")
         
-        # 方案2: 使用syndication API（公开端点）
+        # 方案2: 使用unavatar.io服务获取Twitter头像
+        # 新格式: https://unavatar.io/x/{username}
         if not avatar_url:
             try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    # Twitter的公开syndication API
-                    api_url = f"https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names={username}"
-                    response = await client.get(api_url)
+                # 使用unavatar.io服务（自动获取最新Twitter头像）
+                unavatar_url = f"https://unavatar.io/x/{username}?fallback=false"
+                
+                async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                    response = await client.get(unavatar_url)
                     
-                    if response.status_code == 200:
-                        data = response.json()
-                        if data and len(data) > 0:
-                            avatar_url = data[0].get('profile_image_url_https', '')
-                            # 替换为更高清版本
-                            if avatar_url:
-                                avatar_url = avatar_url.replace('_normal', '_400x400')
-                                logger.info(f"✅ 从syndication API获取到头像URL: {avatar_url}")
+                    if response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'):
+                        avatar_url = unavatar_url
+                        logger.info(f"✅ 从unavatar.io获取到头像URL: {avatar_url}")
+                    else:
+                        logger.warning(f"⚠️ unavatar.io返回异常: {response.status_code}")
             except Exception as e:
-                logger.warning(f"⚠️ syndication API获取失败: {e}")
+                logger.warning(f"⚠️ unavatar.io获取失败: {e}")
+        
+        # 方案3: 备用头像服务
+        if not avatar_url:
+            try:
+                # 尝试其他头像服务
+                backup_urls = [
+                    f"https://ui-avatars.com/api/?name={username}&size=200&background=667eea&color=fff&bold=true",
+                ]
+                
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    for backup_url in backup_urls:
+                        try:
+                            response = await client.get(backup_url)
+                            if response.status_code == 200:
+                                avatar_url = backup_url
+                                logger.info(f"✅ 从备用服务获取到头像URL: {backup_url}")
+                                break
+                        except:
+                            continue
+            except Exception as e:
+                logger.warning(f"⚠️ 备用服务获取失败: {e}")
         
         if not avatar_url:
             logger.warning(f"❌ 无法获取头像")
             return None
         
         # 下载头像
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             img_response = await client.get(avatar_url)
             
             if img_response.status_code != 200:
