@@ -2504,7 +2504,7 @@ async def register_alpha_hunter(request: dict):
         logger.info(f"   Payload: {payload}")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(hyperliquid_url, json=payload)
+            response = await client.post(hyperliquid_url, json=payload, headers=headers)
             result = response.json()
         
         logger.info(f"   Response: {result}")

@@ -1731,25 +1731,27 @@
                         name: 'HyperliquidSignTransaction',
                         version: '1',
                         chainId: parseInt(chainId, 16),
-                        verifyingContract: connectedWallet  // 使用用户钱包地址
+                        verifyingContract: '0x0000000000000000000000000000000000000000'
                     },
                     types: {
+                        'HyperliquidTransaction:ApproveAgent': [
+                            { name: 'hyperliquidChain', type: 'string' },
+                            { name: 'signatureChainId', type: 'string' },
+                            { name: 'agentAddress', type: 'address' },
+                            { name: 'agentName', type: 'string' },
+                            { name: 'nonce', type: 'uint64' }
+                        ],
                         EIP712Domain: [
                             { name: 'name', type: 'string' },
                             { name: 'version', type: 'string' },
                             { name: 'chainId', type: 'uint256' },
                             { name: 'verifyingContract', type: 'address' }
-                        ],
-                        ApproveAgent: [
-                            { name: 'hyperliquidChain', type: 'string' },
-                            { name: 'agentAddress', type: 'address' },
-                            { name: 'agentName', type: 'string' },
-                            { name: 'nonce', type: 'uint64' }
                         ]
                     },
-                    primaryType: 'ApproveAgent',
+                    primaryType: 'HyperliquidTransaction:ApproveAgent',
                     message: {
                         hyperliquidChain: 'Mainnet',  // 使用主网
+                        signatureChainId: '0x66eee',  // Arbitrum One
                         agentAddress: agentAddress,
                         agentName: agentName,
                         nonce: nonce
