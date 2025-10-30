@@ -2160,8 +2160,8 @@ async def get_news_trading_status():
         # 总币种数
         total_coins = len(SUPPORTED_COINS)
         
-        # 总用户数（活跃的AI模型数）
-        total_users = len(news_handler.analyzers) if news_handler.analyzers else 0
+        # 总用户数（Alpha Hunter 注册的用户数）
+        total_users = len(alpha_hunter.configs) if alpha_hunter and alpha_hunter.configs else 0
         
         # 总交易量和总盈利（从Redis获取历史数据）
         total_volume = 0.0
