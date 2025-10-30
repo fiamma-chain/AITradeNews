@@ -17,48 +17,43 @@ logger = logging.getLogger(__name__)
 
 
 class NewsTradeHandler:
-    """消息交易处理器 - 使用现有独立AI账户"""
+    """消息交易处理器 - 使用 Alpha Hunter 注册的 Agent 账户"""
     
     def __init__(self):
         """初始化处理器"""
-        self.individual_traders = []  # 将由外部设置
+        self.alpha_hunter = None  # Alpha Hunter 实例（将由外部设置）
         self.configured_ais = []  # 配置的AI列表
-        self.analyzers = {}  # AI分析器缓存
+        self.analyzers = {}  # AI分析器缓存 {ai_name: NewsAnalyzer}
         self.recent_messages = {}  # 最近处理的消息 {coin: timestamp}
         self.message_cooldown = 60  # 消息冷却时间（秒），同一币种60秒内只处理一次
         
         logger.info("🚀 消息交易处理器初始化")
     
-    def setup(self, individual_traders: List, configured_ais: List[str], ai_api_keys: dict, monitored_coins: List[str] = None):
+    def setup(self, alpha_hunter, active_ais: List[str], ai_api_keys: dict, monitored_coins: List[str] = None):
         """
         配置处理器
         
         Args:
-            individual_traders: Arena的独立AI交易者列表
-            configured_ais: 配置的AI名称列表（如 ['claude', 'gpt', 'deepseek']）
+            alpha_hunter: AlphaHunter 实例
+            active_ais: 激活的AI名称列表（如 ['grok', 'claude']）
             ai_api_keys: AI的API密钥字典
-            monitored_coins: 监控的币种列表（如 ['PING', 'MON']），如果为None则监控所有
+            monitored_coins: 监控的币种列表（如 ['ASTER']），如果为None则监控所有
         """
-        self.individual_traders = individual_traders
-        self.configured_ais = [ai.lower() for ai in configured_ais]
+        self.alpha_hunter = alpha_hunter
+        self.configured_ais = [ai.lower() for ai in active_ais]
         self.monitored_coins = [coin.upper() for coin in monitored_coins] if monitored_coins else None
         
-        # 为每个配置的AI创建分析器
-        for trader in individual_traders:
-            ai_name_lower = trader.ai_name.lower()
-            
-            if ai_name_lower not in self.configured_ais:
-                continue
-            
-            api_key = ai_api_keys.get(ai_name_lower)
+        # 为每个激活的AI创建分析器
+        for ai_name in self.configured_ais:
+            api_key = ai_api_keys.get(ai_name)
             if not api_key:
-                logger.warning(f"⚠️  {trader.ai_name} 没有API Key，跳过")
+                logger.warning(f"⚠️  {ai_name} 没有API Key，跳过")
                 continue
             
-            analyzer = create_news_analyzer(ai_name_lower, api_key)
+            analyzer = create_news_analyzer(ai_name, api_key)
             if analyzer:
-                self.analyzers[trader.ai_name] = analyzer
-                logger.info(f"✅ 已为 {trader.ai_name} 创建分析器")
+                self.analyzers[ai_name] = analyzer
+                logger.info(f"✅ 已为 {ai_name} 创建分析器")
         
         logger.info(f"📊 消息交易已配置，激活的AI: {list(self.analyzers.keys())}")
     
@@ -102,29 +97,53 @@ class NewsTradeHandler:
         })
         
         # 为每个AI创建处理任务
+        # 🚀 并发执行所有激活的AI分析
+        # 为每个注册的用户，使用激活的 AI 进行分析和交易
+        if not self.alpha_hunter or not self.alpha_hunter.configs:
+            logger.warning(f"⚠️  没有注册的用户，跳过交易")
+            return
+        
         tasks = []
-        for trader in self.individual_traders:
-            if trader.ai_name in self.analyzers:
-                task = self._handle_single_ai(trader, message)
+        for user_address, user_config in self.alpha_hunter.configs.items():
+            # 检查用户是否监控这个币种
+            if coin.upper() not in [c.upper() for c in user_config.monitored_coins]:
+                continue
+            
+            # 为每个激活的 AI 创建任务
+            for ai_name in self.analyzers.keys():
+                task = self._handle_single_ai(user_address, user_config, ai_name, message)
                 tasks.append(task)
         
+        if not tasks:
+            logger.info(f"⏭️  没有用户监控 {coin}，跳过")
+            return
+        
         # 并发执行
+        logger.info(f"🚀 开始执行 {len(tasks)} 个任务（{len(self.alpha_hunter.configs)} 个用户 × {len(self.analyzers)} 个AI）")
         await asyncio.gather(*tasks, return_exceptions=True)
     
-    async def _handle_single_ai(self, trader, message: ListingMessage):
-        """单个AI处理消息"""
+    async def _handle_single_ai(self, user_address: str, user_config, ai_name: str, message: ListingMessage):
+        """单个AI为单个用户处理消息"""
         coin = message.coin_symbol
-        ai_name = trader.ai_name
         analyzer = self.analyzers.get(ai_name)
         
-        if not analyzer:
+        # 获取用户的 Agent 客户端
+        agent_client = self.alpha_hunter.agent_clients.get(user_address)
+        
+        if not analyzer or not agent_client:
+            if not analyzer:
+                logger.warning(f"⚠️  [{ai_name}] 分析器不存在")
+            if not agent_client:
+                logger.warning(f"⚠️  用户 {user_address[:10]}... 的 Agent 客户端不存在")
             return
+        
+        user_short = user_address[:6] + "..." + user_address[-4:]
         
         # 🕐 开始计时
         t_start = datetime.now()
         
         try:
-            logger.info(f"🤖 [{ai_name}] 开始分析消息: {coin}")
+            logger.info(f"🤖 [{ai_name}] 为用户 {user_short} 分析 {coin}")
             
             # 1. AI分析
             t1 = datetime.now()
@@ -149,29 +168,23 @@ class NewsTradeHandler:
                 "decision": strategy.direction,
                 "leverage": strategy.leverage,
                 "confidence": strategy.confidence,
-                "analysis_time": round(analysis_time, 2)
+                "analysis_time": round(analysis_time, 2),
+                "user": user_short
             })
             
-            # 2. 检查并平掉现有仓位
+            # 2. 开仓交易（使用 Agent 客户端）
             t3 = datetime.now()
-            await self._close_existing_positions(trader, coin)
+            await self._execute_trade(agent_client, user_config, ai_name, user_address, message, strategy, analysis_time)
             t4 = datetime.now()
-            close_time = (t4 - t3).total_seconds()
-            
-            # 3. 在所有平台开新仓
-            t5 = datetime.now()
-            await self._open_new_positions(trader, message, strategy, analysis_time)
-            t6 = datetime.now()
-            open_time = (t6 - t5).total_seconds()
+            trade_time = (t4 - t3).total_seconds()
             
             # ⏱️ 总耗时
-            total_time = (t6 - t_start).total_seconds()
+            total_time = (t4 - t_start).total_seconds()
             
             logger.info(
-                f"⏱️  [{ai_name}] {coin} 处理完成\n"
+                f"⏱️  [{ai_name}] {coin} 处理完成 (用户: {user_short})\n"
                 f"   分析耗时: {analysis_time:.2f}s\n"
-                f"   平仓耗时: {close_time:.2f}s\n"
-                f"   开仓耗时: {open_time:.2f}s\n"
+                f"   交易耗时: {trade_time:.2f}s\n"
                 f"   ✨ 总耗时: {total_time:.2f}s"
             )
         
@@ -180,195 +193,110 @@ class NewsTradeHandler:
             total_time = (t_end - t_start).total_seconds()
             logger.error(f"❌ [{ai_name}] 处理消息时出错 (耗时: {total_time:.2f}s): {e}", exc_info=True)
     
-    async def _close_existing_positions(self, trader, coin: str):
+    async def _execute_trade(self, agent_client, user_config, ai_name: str, user_address: str, message: ListingMessage, strategy, analysis_time: float):
         """
-        关闭现有仓位（优化版：快速检查，减少不必要的API调用）
+        使用 Agent 客户端执行交易
         
-        策略：
-        1. 新闻交易通常是全新机会，快速检查即可
-        2. 如果确实有持仓，才执行平仓操作
-        3. 避免在无持仓时浪费时间查询
+        Args:
+            agent_client: 用户的 Agent HyperliquidClient
+            user_config: 用户配置（AlphaHunterConfig）
+            ai_name: AI 名称
+            user_address: 用户地址
+            message: 上币消息
+            strategy: AI 分析的交易策略
+            analysis_time: AI 分析耗时
         """
-        ai_name = trader.ai_name
-        
-        # 🚀 优化：新闻交易快速模式 - 跳过持仓检查
-        # 原因：
-        # 1. 新闻交易是对新上线币种的快速反应
-        # 2. 同一币种短时间内连续触发的概率极低
-        # 3. 即使有持仓，交易所会自动处理（加仓或平仓）
-        # 4. 避免 66秒的持仓查询延迟
-        
-        logger.info(f"⚡ [{ai_name}] 跳过持仓检查（新闻交易快速模式，节省 ~66s）")
-    
-    async def _open_new_positions(self, trader, message: ListingMessage, strategy, analysis_time: float):
-        """在所有平台开新仓"""
-        ai_name = trader.ai_name
         coin = message.coin_symbol
+        user_short = user_address[:6] + "..." + user_address[-4:]
         
-        # 在每个平台开仓
-        for platform_name, platform_trader in trader.multi_trader.platform_traders.items():
-            try:
-                logger.info(f"🚀 [{ai_name}] [{platform_name}] 准备开仓 {coin}")
-                
-                # 获取账户余额
-                client = platform_trader.client
-                try:
-                    account_info = await client.get_account_info()
-                    
-                    # 计算账户余额
-                    account_balance = 0
-                    
-                    if isinstance(account_info, dict):
-                        # Hyperliquid: withdrawable 字段
-                        if 'withdrawable' in account_info:
-                            account_balance = float(account_info['withdrawable'])
-                        # Aster: totalMarginBalance 或 totalWalletBalance
-                        elif 'totalMarginBalance' in account_info:
-                            account_balance = float(account_info['totalMarginBalance'])
-                        elif 'totalWalletBalance' in account_info:
-                            account_balance = float(account_info['totalWalletBalance'])
-                    
-                    if account_balance == 0:
-                        logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 无法获取账户余额，跳过")
-                        continue
-                    
-                    # 根据信心度动态计算保证金比例（从配置读取范围）
-                    from config.settings import settings
-                    
-                    confidence = strategy.confidence
-                    min_margin_pct = settings.news_min_margin_pct
-                    max_margin_pct = settings.news_max_margin_pct
-                    
-                    if confidence < 60:
-                        margin_pct = min_margin_pct
-                    else:
-                        # 线性映射: 60% -> min_margin_pct, 100% -> max_margin_pct
-                        margin_pct = min_margin_pct + ((confidence - 60) / 40) * (max_margin_pct - min_margin_pct)
-                        margin_pct = min(max_margin_pct, max(min_margin_pct, margin_pct))
-                    
-                    actual_margin = account_balance * margin_pct
-                    
-                    logger.info(
-                        f"💰 [{ai_name}] [{platform_name}] 账户余额: ${account_balance:.2f}, "
-                        f"信心度: {confidence:.1f}%, "
-                        f"保证金比例: {margin_pct*100:.0f}% (配置: {min_margin_pct*100:.0f}%-{max_margin_pct*100:.0f}%), "
-                        f"实际保证金: ${actual_margin:.2f}"
-                    )
-                
-                except Exception as e:
-                    logger.error(f"❌ [{ai_name}] [{platform_name}] 获取账户信息失败: {e}")
-                    continue
-                
-                # 🚀 优化1: 从缓存获取最大杠杆（避免额外的 API 调用，节省1.36s）
-                from trading.precision_config import PrecisionConfig
-                precision_config = PrecisionConfig.get_hyperliquid_precision(coin)
-                platform_max_leverage = precision_config.get("max_leverage", None)
-                
-                # 提前计算实际杠杆
-                actual_leverage = strategy.leverage
-                if platform_max_leverage and actual_leverage > platform_max_leverage:
-                    logger.warning(
-                        f"⚠️  [{ai_name}] [{platform_name}] AI建议杠杆 {actual_leverage}x 超过 {coin} 最大杠杆 {platform_max_leverage}x\n"
-                        f"   自动调整为: {platform_max_leverage}x"
-                    )
-                    actual_leverage = platform_max_leverage
-                
-                # 🚀 优化2: 移除手动设置杠杆，由 place_order 自动设置（节省1次API调用）
-                # 注释掉手动设置，因为 place_order 会根据 leverage 参数自动设置
-                # try:
-                #     if hasattr(client, 'update_leverage'):
-                #         client.update_leverage(coin, actual_leverage, is_cross=True)
-                #     elif hasattr(client, 'update_leverage_async'):
-                #         await client.update_leverage_async(coin, actual_leverage)
-                # except Exception as e:
-                #     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 设置杠杆失败: {e}")
-                
-                # 获取市场数据（仅用于获取当前价格）
-                market_data = None
-                
-                if hasattr(client, 'get_market_data'):
-                    market_data = await client.get_market_data(coin)
-                elif hasattr(trader, 'data_source_client'):
-                    market_data = trader.data_source_client.get_market_data(coin)
-                
-                if not market_data:
-                    logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 无法获取 {coin} 价格，跳过")
-                    continue
-                
-                current_price = float(market_data.get("markPx", 0))
-                if current_price == 0:
-                    logger.warning(f"⚠️  [{ai_name}] [{platform_name}] {coin} 价格为0，跳过")
-                    continue
-                
-                # 计算下单数量（基于实际保证金和调整后的杠杆）
-                position_value = actual_margin * actual_leverage
-                size = position_value / current_price
-                
-                # 下单（新闻交易使用市价单，立即成交）
-                is_buy = (strategy.direction == "long")
-                
-                # 市价单：使用当前价格 +/- 5% 作为保护价格（防止滑点过大）
-                if is_buy:
-                    # 买入：愿意最高支付当前价 * 1.05
-                    limit_price = current_price * 1.05
-                else:
-                    # 卖出：愿意最低接受当前价 * 0.95
-                    limit_price = current_price * 0.95
-                
-                result = await client.place_order(
-                    coin=coin,
-                    is_buy=is_buy,
-                    size=size,
-                    price=limit_price,
-                    order_type="Market",  # 市价单，立即成交
-                    reduce_only=False,
-                    leverage=actual_leverage
-                )
-                
-                if result.get("status") == "ok":
-                    leverage_info = f"{actual_leverage}x"
-                    if actual_leverage != strategy.leverage:
-                        leverage_info += f" (AI建议: {strategy.leverage}x)"
-                    
-                    logger.info(
-                        f"✅ [{ai_name}] [{platform_name}] 开仓成功\n"
-                        f"   币种: {coin}\n"
-                        f"   方向: {strategy.direction}\n"
-                        f"   杠杆: {leverage_info}\n"
-                        f"   价格: ${current_price:.2f}\n"
-                        f"   账户余额: ${account_balance:.2f}\n"
-                        f"   保证金比例: {margin_pct*100:.0f}%\n"
-                        f"   实际保证金: ${actual_margin:.2f}\n"
-                        f"   仓位价值: ${position_value:.2f}\n"
-                        f"   消息来源: {message.source}"
-                    )
-                    
-                    # 🚀 推送事件：开仓成功（添加地址信息）
-                    # 获取账户地址（简化显示）
-                    address = getattr(client, 'address', 'N/A')
-                    if address != 'N/A' and len(address) > 10:
-                        # 简化地址显示：0x1234...5678
-                        address = f"{address[:6]}...{address[-4:]}"
-                    
-                    await event_manager.push_event("trade_opened", {
-                        "ai": ai_name,
-                        "platform": platform_name,
-                        "coin": coin,
-                        "direction": strategy.direction,
-                        "leverage": actual_leverage,
-                        "price": round(current_price, 4),
-                        "margin": round(actual_margin, 2),
-                        "position_value": round(position_value, 2),
-                        "source": message.source,
-                        "address": address  # 添加简化地址
-                    })
-                else:
-                    logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 下单失败: {result}")
+        try:
+            logger.info(f"🚀 [{ai_name}] 为用户 {user_short} 准备在 Hyperliquid 开仓 {coin}")
             
-            except Exception as e:
-                logger.error(f"❌ [{ai_name}] [{platform_name}] 开仓失败: {e}", exc_info=True)
+            # 1. 获取账户余额
+            account_info = await agent_client.get_account_info()
+            account_balance = float(account_info.get('withdrawable', 0))
+            
+            if account_balance == 0:
+                logger.warning(f"⚠️  [{ai_name}] 用户 {user_short} 账户余额为0，跳过")
+                return
+            
+            # 2. 计算保证金（使用用户配置的每币种保证金）
+            margin_per_coin = user_config.margin_per_coin.get(coin, 100.0)
+            actual_margin = min(margin_per_coin, account_balance)
+            
+            logger.info(
+                f"💰 [{ai_name}] 账户余额: ${account_balance:.2f}, "
+                f"用户配置保证金: ${margin_per_coin:.2f}, "
+                f"实际保证金: ${actual_margin:.2f}"
+            )
+            
+            # 3. 获取并验证最大杠杆
+            from trading.precision_config import PrecisionConfig
+            precision_config = PrecisionConfig.get_hyperliquid_precision(coin)
+            platform_max_leverage = precision_config.get("max_leverage", 50)
+            
+            actual_leverage = min(strategy.leverage, platform_max_leverage)
+            if actual_leverage != strategy.leverage:
+                logger.warning(
+                    f"⚠️  [{ai_name}] AI建议杠杆 {strategy.leverage}x 超过 {coin} 最大杠杆 {platform_max_leverage}x\n"
+                    f"   自动调整为: {actual_leverage}x"
+                )
+            
+            # 4. 获取当前价格
+            market_data = await agent_client.get_market_data(coin)
+            current_price = float(market_data.get("markPx", 0))
+            
+            if current_price == 0:
+                logger.warning(f"⚠️  [{ai_name}] {coin} 价格为0，跳过")
+                return
+            
+            # 5. 计算下单数量
+            position_value = actual_margin * actual_leverage
+            size = position_value / current_price
+            
+            # 6. 下单（市价单，5%价格保护）
+            is_buy = (strategy.direction.lower() == "long")
+            protection = 0.05
+            limit_price = current_price * (1 + protection if is_buy else 1 - protection)
+            
+            logger.info(
+                f"📝 [{ai_name}] 下单参数:\n"
+                f"   方向: {'BUY (LONG)' if is_buy else 'SELL (SHORT)'}\n"
+                f"   数量: {size:.4f}\n"
+                f"   价格: ${current_price:.4f} (限价保护: ${limit_price:.4f})\n"
+                f"   杠杆: {actual_leverage}x\n"
+                f"   保证金: ${actual_margin:.2f}"
+            )
+            
+            result = await agent_client.place_order(
+                symbol=coin,
+                is_buy=is_buy,
+                size=size,
+                price=limit_price,
+                leverage=actual_leverage,
+                reduce_only=False
+            )
+            
+            logger.info(f"✅ [{ai_name}] 订单成功: {result}")
+            
+            # 7. 推送事件：交易开仓成功
+            await event_manager.push_event("trade_opened", {
+                "ai": ai_name,
+                "coin": coin,
+                "direction": strategy.direction,
+                "price": current_price,
+                "size": size,
+                "leverage": actual_leverage,
+                "margin": actual_margin,
+                "address": user_short,
+                "user_address": user_address
+            })
+            
+        except Exception as e:
+            logger.error(f"❌ [{ai_name}] 交易执行失败: {e}", exc_info=True)
 
 
 # 全局实例
 news_handler = NewsTradeHandler()
 
+# 旧方法已删除（不再使用 individual_traders，改用 Alpha Hunter 的 Agent 客户端）
