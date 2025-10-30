@@ -2548,8 +2548,8 @@ if __name__ == "__main__":
     import asyncio
     asyncio.run(preload_coin_configs())
     
-    # 3. 初始化 Alpha Hunter
-    asyncio.run(alpha_hunter.initialize())
+    # 3. Alpha Hunter 会在 @app.on_event("startup") 中自动初始化
+    # 不需要在这里初始化，因为此时事件循环还未启动
     
     uvicorn.run(
         app,
