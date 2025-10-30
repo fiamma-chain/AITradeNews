@@ -82,7 +82,9 @@ class HyperliquidClient(BaseExchangeClient):
         """
         try:
             # 🚀 优化：在线程池中执行同步API调用，避免阻塞事件循环66秒
-            user_state = await asyncio.to_thread(self.info.user_state, self.address)
+            # 对于 Agent 客户端，查询主账户地址；对于普通客户端，查询自己的地址
+            query_address = self.exchange.account_address if self.exchange.account_address else self.address
+            user_state = await asyncio.to_thread(self.info.user_state, query_address)
             return user_state
         except Exception as e:
             logger.error(f"获取账户信息失败: {e}")

@@ -66,9 +66,14 @@ class NewsTradeHandler:
         """
         coin = message.coin_symbol
         
-        # 过滤：只处理监控的币种
-        if self.monitored_coins and coin.upper() not in self.monitored_coins:
-            logger.info(f"⏭️  [消息交易] 跳过未监控的币种: {coin} (监控列表: {self.monitored_coins})")
+        # 🔥 动态获取监控币种：从 Alpha Hunter 获取所有活跃用户的监控币种
+        active_monitored_coins = []
+        if self.alpha_hunter:
+            active_monitored_coins = [c.upper() for c in self.alpha_hunter.get_all_active_coins()]
+        
+        # 过滤：只处理监控的币种（如果有活跃用户）
+        if active_monitored_coins and coin.upper() not in active_monitored_coins:
+            logger.info(f"⏭️  [消息交易] 跳过未监控的币种: {coin} (当前监控列表: {active_monitored_coins})")
             return
         
         # 🚀 消息去重：检查是否在冷却期内
@@ -283,7 +288,7 @@ class NewsTradeHandler:
             )
             
             result = await agent_client.place_order(
-                symbol=coin,
+                coin=coin,
                 is_buy=is_buy,
                 size=size,
                 price=limit_price,

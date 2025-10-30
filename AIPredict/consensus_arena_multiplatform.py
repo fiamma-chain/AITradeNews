@@ -1425,9 +1425,8 @@ async def start_news_trading(request: dict = None):
     if not alpha_hunter:
         return {"error": "Alpha Hunter 未初始化"}
     
-    # 检查是否有注册的用户
-    if not alpha_hunter.configs:
-        return {"error": "没有注册的用户，请先在 Alpha Hunter 中注册"}
+    # 🔧 监听器启动不再要求必须有注册用户（监听器独立运行）
+    # 当检测到新币时，news_handler 会动态检查是否有注册用户
     
     try:
         # 获取前端传递的激活币种列表
@@ -1436,12 +1435,15 @@ async def start_news_trading(request: dict = None):
             monitored_coins = [coin.upper() for coin in request['coins']]
             logger.info(f"📡 前端激活的监控币种: {monitored_coins}")
         else:
-            # 如果前端未传递，使用所有注册用户监控的币种
+            # 如果前端未传递，尝试使用所有注册用户监控的币种（如果有用户的话）
             all_coins = set()
-            for user_config in alpha_hunter.configs.values():
-                all_coins.update([c.upper() for c in user_config.monitored_coins])
-            monitored_coins = list(all_coins)
-            logger.info(f"📡 使用所有注册用户的监控币种: {monitored_coins}")
+            if alpha_hunter.configs:
+                for user_config in alpha_hunter.configs.values():
+                    all_coins.update([c.upper() for c in user_config.monitored_coins])
+                monitored_coins = list(all_coins)
+                logger.info(f"📡 使用所有注册用户的监控币种: {monitored_coins}")
+            else:
+                logger.info(f"📡 当前没有注册用户，监听器将监控所有交易所新币上线")
         
         # 获取前端传递的激活 AI 列表
         active_ais = []
@@ -2445,6 +2447,7 @@ async def register_alpha_hunter(request: dict):
         margin_per_coin = request.get("margin_per_coin", {})
         nonce = request.get("nonce")
         signature = request.get("signature")
+        signature_chain_id = request.get("signature_chain_id", "0xa4b1")  # 默认 Arbitrum One
         
         if not all([user_address, agent_private_key, agent_address, nonce, signature]):
             return {"status": "error", "message": "缺少必要参数"}
@@ -2453,6 +2456,7 @@ async def register_alpha_hunter(request: dict):
         logger.info(f"   用户地址: {user_address}")
         logger.info(f"   Agent地址: {agent_address}")
         logger.info(f"   Agent名称: {agent_name}")
+        logger.info(f"   签名 ChainId: {signature_chain_id}")
         logger.info(f"   签名: {signature[:20]}...")
         
         # Step 1: 调用 Hyperliquid API 提交 approve_agent 请求
@@ -2466,7 +2470,7 @@ async def register_alpha_hunter(request: dict):
             "agentAddress": agent_address,
             "agentName": agent_name,
             "nonce": nonce,
-            "signatureChainId": "0x66eee",  # Arbitrum One chain ID
+            "signatureChainId": signature_chain_id,  # 使用用户实际签名的 chainId
             "hyperliquidChain": "Mainnet" if not settings.hyperliquid_testnet else "Testnet"
         }
         

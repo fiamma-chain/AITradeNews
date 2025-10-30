@@ -105,11 +105,11 @@ class AlphaHunter:
             
             # 验证账户余额
             account_info = await agent_client.get_account_info()
-            balance = account_info.get("withdrawable", 0)
+            balance = float(account_info.get("withdrawable", 0))
             logger.info(f"💰 用户账户余额: {balance} USDC")
             
-            # 验证保证金配置
-            total_margin = sum(margin_per_coin.values())
+            # 验证保证金配置（确保所有值都是数字类型）
+            total_margin = sum(float(v) for v in margin_per_coin.values())
             if total_margin > balance:
                 return {
                     "status": "error",

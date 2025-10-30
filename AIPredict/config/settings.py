@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     news_stop_loss_pct: float = 0.01  # 止损比例 1%
     
     # 测试模式配置
-    news_trading_test_mode: bool = False  # 测试模式：把已上线的币种当作新上线处理
+    news_trading_test_mode: bool = True  # 测试模式：把已上线的币种当作新上线处理
     news_take_profit_pct: float = 0.05  # 止盈比例 5%
     news_min_margin_pct: float = 0.30  # 最小保证金比例 30%
     news_max_margin_pct: float = 1.00  # 最大保证金比例 100%
