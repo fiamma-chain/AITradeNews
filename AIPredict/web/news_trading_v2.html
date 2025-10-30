@@ -1692,16 +1692,26 @@
             try {
                 btn.disabled = true;
                 
-                // Step 1: 生成 Agent 私钥（前端生成）
+                // Step 1: 生成 Agent 私钥并从后端获取对应地址
                 btn.textContent = '🔑 Generating Agent wallet...';
                 console.log('🔑 Step 1: Generating Agent wallet...');
                 
                 const agentPrivateKey = '0x' + Array.from(window.crypto.getRandomValues(new Uint8Array(32)))
                     .map(b => b.toString(16).padStart(2, '0')).join('');
                 
-                // 简单推导地址（实际应使用 ethers.js）
-                const agentAddress = '0x' + agentPrivateKey.substring(2, 42);
+                // 调用后端 API 从私钥推导地址
+                const deriveResponse = await fetch('/api/alpha_hunter/derive_address', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ private_key: agentPrivateKey })
+                });
                 
+                const deriveResult = await deriveResponse.json();
+                if (deriveResult.status !== 'ok') {
+                    throw new Error('Failed to derive address: ' + (deriveResult.message || 'Unknown error'));
+                }
+                
+                const agentAddress = deriveResult.address;
                 console.log('✅ Agent wallet generated:', agentAddress);
                 
                 // Step 2: 用户签名授权 Agent（MetaMask EIP-712 签名）

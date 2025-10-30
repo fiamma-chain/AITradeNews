@@ -2380,6 +2380,45 @@ async def approve_agent_for_user(request: dict):
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/alpha_hunter/derive_address")
+async def derive_address_from_private_key(request: dict):
+    """
+    从私钥推导以太坊地址
+    
+    Expected JSON:
+    {
+        "private_key": "0x..."
+    }
+    """
+    try:
+        private_key = request.get("private_key")
+        
+        if not private_key:
+            return {"status": "error", "message": "缺少 private_key"}
+        
+        # 使用 eth_account 从私钥推导地址
+        from eth_account import Account
+        
+        # 移除 '0x' 前缀（如果存在）
+        if private_key.startswith('0x'):
+            private_key = private_key[2:]
+        
+        # 从私钥创建账户对象
+        account = Account.from_key('0x' + private_key)
+        address = account.address
+        
+        logger.info(f"✅ 从私钥推导地址: {address}")
+        
+        return {
+            "status": "ok",
+            "address": address
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ derive_address 失败: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 @app.post("/api/alpha_hunter/register")
 async def register_alpha_hunter(request: dict):
     """
