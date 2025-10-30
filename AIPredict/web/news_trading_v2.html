@@ -1193,10 +1193,19 @@
                 if (aiData.ai_models && aiData.ai_models.length > 0) {
                     const aiGrid = document.getElementById('ai-grid');
                     aiGrid.innerHTML = aiData.ai_models.map(ai => `
-                        <div class="item-card ${ai.active ? 'active' : 'inactive'}" title="${ai.active ? 'Active' : 'Inactive'}">
+                        <div class="item-card ${activeAIs.has(ai.key) ? 'active' : 'inactive'}" id="ai-card-${ai.key}" style="position: relative; padding-bottom: 50px;">
                             <img src="${ai.logo}" alt="${ai.name}" class="item-logo">
                             <div class="item-name">${ai.name}</div>
                             <div class="item-symbol">${ai.provider}</div>
+                            <div style="position: absolute; bottom: 8px; left: 8px; right: 8px;">
+                                <button id="ai-btn-${ai.key}" 
+                                        onclick="event.stopPropagation(); toggleAI('${ai.key}')"
+                                        style="width: 100%; padding: 6px; background: ${activeAIs.has(ai.key) ? 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)' : 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'}; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform='scale(1)'">
+                                    ${activeAIs.has(ai.key) ? '⏹ Deactivate' : '▶ Activate'}
+                                </button>
+                            </div>
                         </div>
                     `).join('');
                 }
@@ -1421,6 +1430,48 @@
         // 币种监控状态管理
         const monitoredCoins = new Set();
         
+        // AI 激活状态管理
+        const activeAIs = new Set();
+        
+        // 切换 AI 激活状态
+        async function toggleAI(aiKey) {
+            const btn = document.getElementById(`ai-btn-${aiKey}`);
+            const card = document.getElementById(`ai-card-${aiKey}`);
+            const isActive = activeAIs.has(aiKey);
+            
+            if (!isActive) {
+                // 激活 AI
+                activeAIs.add(aiKey);
+                
+                // 更新卡片状态
+                card.classList.remove('inactive');
+                card.classList.add('active');
+                
+                // 更新按钮状态
+                btn.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+                btn.textContent = '⏹ Deactivate';
+                
+                addActivityMessage(`🤖 <span class="highlight">${aiKey.toUpperCase()}</span> AI activated - Ready for trading analysis`);
+                console.log(`✅ Activated AI: ${aiKey}`);
+            } else {
+                // 停用 AI
+                activeAIs.delete(aiKey);
+                
+                // 更新卡片状态
+                card.classList.remove('active');
+                card.classList.add('inactive');
+                
+                // 更新按钮状态
+                btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100())';
+                btn.textContent = '▶ Activate';
+                
+                console.log(`⏹ Deactivated AI: ${aiKey}`);
+            }
+            
+            // TODO: 通知后端更新激活的 AI 列表
+            // 可以在这里调用 /api/alpha_hunter/update_ais 等接口
+        }
+        
         // 切换币种监控
         async function toggleCoinMonitor(coinSymbol) {
             const btn = document.getElementById(`monitor-btn-${coinSymbol}`);
@@ -1429,6 +1480,16 @@
             const isMonitoring = monitoredCoins.has(coinSymbol);
             
             if (!isMonitoring) {
+                // 检查是否有激活的 AI 模型
+                if (activeAIs.size === 0) {
+                    alert(
+                        '⚠️ No AI Model Activated!\n\n' +
+                        'Please activate at least one AI model before starting monitoring.\n\n' +
+                        'Go to "AI Models" section and click "Activate" on any AI model (GPT-4o, Gemini, Grok, etc.).'
+                    );
+                    return;
+                }
+                
                 // 启动监控
                 try {
                     // 添加到监控列表
