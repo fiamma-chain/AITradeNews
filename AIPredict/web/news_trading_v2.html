@@ -1731,7 +1731,7 @@
                         name: 'HyperliquidSignTransaction',
                         version: '1',
                         chainId: parseInt(chainId, 16),
-                        verifyingContract: '0x0000000000000000000000000000000000000000'
+                        verifyingContract: connectedWallet  // 使用用户钱包地址
                     },
                     types: {
                         EIP712Domain: [

@@ -2485,13 +2485,22 @@ async def register_alpha_hunter(request: dict):
         # 构造 Hyperliquid API 请求
         hyperliquid_url = "https://api.hyperliquid-testnet.xyz/exchange" if settings.hyperliquid_testnet else "https://api.hyperliquid.xyz/exchange"
         
+        # 构造完整的 API 请求（包含用户地址）
         payload = {
             "action": action,
             "signature": signature_obj,
-            "nonce": nonce
+            "nonce": nonce,
+            "vaultAddress": None  # 非 vault 账户
+        }
+        
+        # 添加 HTTP headers，指定签名者地址
+        headers = {
+            "Content-Type": "application/json"
         }
         
         logger.info(f"   Hyperliquid URL: {hyperliquid_url}")
+        logger.info(f"   User Address: {user_address}")
+        logger.info(f"   Agent Address: {agent_address}")
         logger.info(f"   Payload: {payload}")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
