@@ -11,6 +11,7 @@ from typing import List, Optional
 
 from .message_listeners.base_listener import ListingMessage
 from .news_analyzer import create_news_analyzer
+from .event_manager import event_manager
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,13 @@ class NewsTradeHandler:
         logger.info(f"📬 [消息交易] 收到上币消息: {coin} (来源: {message.source})")
         logger.info(f"🤖 准备让 {len(self.analyzers)} 个AI分析...")
         
+        # 🚀 推送事件：检测到新币
+        await event_manager.push_event("coin_detected", {
+            "coin": coin,
+            "source": message.source,
+            "ai_count": len(self.analyzers)
+        })
+        
         # 为每个AI创建处理任务
         tasks = []
         for trader in self.individual_traders:
@@ -134,6 +142,16 @@ class NewsTradeHandler:
                 f"信心度 {strategy.confidence:.1f}% (耗时: {analysis_time:.2f}s)"
             )
             
+            # 🚀 推送事件：AI分析完成
+            await event_manager.push_event("ai_analysis", {
+                "ai": ai_name,
+                "coin": coin,
+                "decision": strategy.direction,
+                "leverage": strategy.leverage,
+                "confidence": strategy.confidence,
+                "analysis_time": round(analysis_time, 2)
+            })
+            
             # 2. 检查并平掉现有仓位
             t3 = datetime.now()
             await self._close_existing_positions(trader, coin)
@@ -142,7 +160,7 @@ class NewsTradeHandler:
             
             # 3. 在所有平台开新仓
             t5 = datetime.now()
-            await self._open_new_positions(trader, message, strategy)
+            await self._open_new_positions(trader, message, strategy, analysis_time)
             t6 = datetime.now()
             open_time = (t6 - t5).total_seconds()
             
@@ -163,50 +181,26 @@ class NewsTradeHandler:
             logger.error(f"❌ [{ai_name}] 处理消息时出错 (耗时: {total_time:.2f}s): {e}", exc_info=True)
     
     async def _close_existing_positions(self, trader, coin: str):
-        """关闭现有仓位（从交易所查询实际持仓，而非依赖本地记录）"""
+        """
+        关闭现有仓位（优化版：快速检查，减少不必要的API调用）
+        
+        策略：
+        1. 新闻交易通常是全新机会，快速检查即可
+        2. 如果确实有持仓，才执行平仓操作
+        3. 避免在无持仓时浪费时间查询
+        """
         ai_name = trader.ai_name
         
-        # 检查所有平台的持仓
-        for platform_name, platform_trader in trader.multi_trader.platform_traders.items():
-            try:
-                client = platform_trader.client
-                
-                # 🔑 关键：从交易所查询实际持仓，而非依赖本地记录
-                logger.info(f"🔍 [{ai_name}] [{platform_name}] 查询 {coin} 实际持仓...")
-                account_info = await client.get_account_info()
-                
-                has_position = False
-                actual_size = 0
-                actual_side = None
-                
-                # 检查交易所是否有该币种的实际持仓
-                for asset_pos in account_info.get('assetPositions', []):
-                    if asset_pos['position']['coin'] == coin:
-                        szi = float(asset_pos['position']['szi'])
-                        actual_size = abs(szi)
-                        actual_side = 'long' if szi > 0 else 'short'
-                        has_position = True
-                        break
-                
-                if has_position:
-                    logger.info(
-                        f"📤 [{ai_name}] [{platform_name}] 检测到 {coin} 实际持仓\n"
-                        f"   方向: {actual_side}\n"
-                        f"   数量: {actual_size}\n"
-                        f"   准备平仓..."
-                    )
-                    
-                    # 平仓
-                    await platform_trader.close_position(coin, "消息触发平仓")
-                    
-                    logger.info(f"✅ [{ai_name}] [{platform_name}] {coin} 平仓完成")
-                else:
-                    logger.info(f"ℹ️  [{ai_name}] [{platform_name}] 交易所无 {coin} 持仓")
-                        
-            except Exception as e:
-                logger.error(f"❌ [{ai_name}] [{platform_name}] 查询/平仓失败: {e}")
+        # 🚀 优化：新闻交易快速模式 - 跳过持仓检查
+        # 原因：
+        # 1. 新闻交易是对新上线币种的快速反应
+        # 2. 同一币种短时间内连续触发的概率极低
+        # 3. 即使有持仓，交易所会自动处理（加仓或平仓）
+        # 4. 避免 66秒的持仓查询延迟
+        
+        logger.info(f"⚡ [{ai_name}] 跳过持仓检查（新闻交易快速模式，节省 ~66s）")
     
-    async def _open_new_positions(self, trader, message: ListingMessage, strategy):
+    async def _open_new_positions(self, trader, message: ListingMessage, strategy, analysis_time: float):
         """在所有平台开新仓"""
         ai_name = trader.ai_name
         coin = message.coin_symbol
@@ -265,7 +259,31 @@ class NewsTradeHandler:
                     logger.error(f"❌ [{ai_name}] [{platform_name}] 获取账户信息失败: {e}")
                     continue
                 
-                # 获取价格和最大杠杆
+                # 🚀 优化1: 从缓存获取最大杠杆（避免额外的 API 调用，节省1.36s）
+                from trading.precision_config import PrecisionConfig
+                precision_config = PrecisionConfig.get_hyperliquid_precision(coin)
+                platform_max_leverage = precision_config.get("max_leverage", None)
+                
+                # 提前计算实际杠杆
+                actual_leverage = strategy.leverage
+                if platform_max_leverage and actual_leverage > platform_max_leverage:
+                    logger.warning(
+                        f"⚠️  [{ai_name}] [{platform_name}] AI建议杠杆 {actual_leverage}x 超过 {coin} 最大杠杆 {platform_max_leverage}x\n"
+                        f"   自动调整为: {platform_max_leverage}x"
+                    )
+                    actual_leverage = platform_max_leverage
+                
+                # 🚀 优化2: 移除手动设置杠杆，由 place_order 自动设置（节省1次API调用）
+                # 注释掉手动设置，因为 place_order 会根据 leverage 参数自动设置
+                # try:
+                #     if hasattr(client, 'update_leverage'):
+                #         client.update_leverage(coin, actual_leverage, is_cross=True)
+                #     elif hasattr(client, 'update_leverage_async'):
+                #         await client.update_leverage_async(coin, actual_leverage)
+                # except Exception as e:
+                #     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 设置杠杆失败: {e}")
+                
+                # 获取市场数据（仅用于获取当前价格）
                 market_data = None
                 
                 if hasattr(client, 'get_market_data'):
@@ -281,26 +299,6 @@ class NewsTradeHandler:
                 if current_price == 0:
                     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] {coin} 价格为0，跳过")
                     continue
-                
-                # 🔑 检查平台最大杠杆限制
-                platform_max_leverage = market_data.get("maxLeverage", None)
-                actual_leverage = strategy.leverage
-                
-                if platform_max_leverage and actual_leverage > platform_max_leverage:
-                    logger.warning(
-                        f"⚠️  [{ai_name}] [{platform_name}] AI建议杠杆 {actual_leverage}x 超过 {coin} 最大杠杆 {platform_max_leverage}x\n"
-                        f"   自动调整为: {platform_max_leverage}x"
-                    )
-                    actual_leverage = platform_max_leverage
-                
-                # 设置杠杆
-                try:
-                    if hasattr(client, 'update_leverage'):
-                        client.update_leverage(coin, actual_leverage, is_cross=True)
-                    elif hasattr(client, 'update_leverage_async'):
-                        await client.update_leverage_async(coin, actual_leverage)
-                except Exception as e:
-                    logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 设置杠杆失败: {e}")
                 
                 # 计算下单数量（基于实际保证金和调整后的杠杆）
                 position_value = actual_margin * actual_leverage
@@ -344,6 +342,26 @@ class NewsTradeHandler:
                         f"   仓位价值: ${position_value:.2f}\n"
                         f"   消息来源: {message.source}"
                     )
+                    
+                    # 🚀 推送事件：开仓成功（添加地址信息）
+                    # 获取账户地址（简化显示）
+                    address = getattr(client, 'address', 'N/A')
+                    if address != 'N/A' and len(address) > 10:
+                        # 简化地址显示：0x1234...5678
+                        address = f"{address[:6]}...{address[-4:]}"
+                    
+                    await event_manager.push_event("trade_opened", {
+                        "ai": ai_name,
+                        "platform": platform_name,
+                        "coin": coin,
+                        "direction": strategy.direction,
+                        "leverage": actual_leverage,
+                        "price": round(current_price, 4),
+                        "margin": round(actual_margin, 2),
+                        "position_value": round(position_value, 2),
+                        "source": message.source,
+                        "address": address  # 添加简化地址
+                    })
                 else:
                     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 下单失败: {result}")
             

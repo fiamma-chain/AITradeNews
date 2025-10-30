@@ -25,27 +25,8 @@ class MessageSource(Enum):
 # 格式：消息中的币种名 -> 交易对
 # CEX币种 -> CEX交易对（Hyperliquid/Aster）
 # DEX币种 -> DEX代币符号（Uniswap/PancakeSwap）
-COIN_MAPPING = {
-    # CEX - 老币
-    "BTC": "BTC",
-    "BITCOIN": "BTC",
-    "ETH": "ETH",
-    "ETHEREUM": "ETH",
-    "SOL": "SOL",
-    "SOLANA": "SOL",
-    
-    # CEX - 新币
-    "MONAD": "MON",
-    "MON": "MON",
-    "MEGAETH": "MEGA",
-    "MEGA": "MEGA",
-    "PAYAI": "PAYAI",
-    
-    # DEX - Base链代币
-    "PING": "PING",  # Base链Uniswap V4
-    
-    # 可继续添加...
-}
+# 清空默认币种，用户添加币种后会自动填充
+COIN_MAPPING = {}
 
 # 支持交易的币种列表（用于过滤）
 # 从环境变量读取，如果未配置则使用所有映射的币种

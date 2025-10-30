@@ -3,10 +3,13 @@ Hyperliquid 交易客户端（使用官方SDK）
 """
 import asyncio
 import logging
-from typing import Dict, List, Optional
+import secrets
+from typing import Dict, List, Optional, Tuple, Any
 from hyperliquid.info import Info
 from hyperliquid.exchange import Exchange
 from hyperliquid.utils import constants
+import eth_account
+from eth_account.signers.local import LocalAccount
 
 from trading.base_client import BaseExchangeClient
 from trading.precision_config import precision_config
@@ -72,13 +75,14 @@ class HyperliquidClient(BaseExchangeClient):
     
     async def get_account_info(self) -> Dict:
         """
-        获取账户信息
+        获取账户信息（异步优化：避免阻塞事件循环）
         
         Returns:
             账户信息字典
         """
         try:
-            user_state = self.info.user_state(self.address)
+            # 🚀 优化：在线程池中执行同步API调用，避免阻塞事件循环66秒
+            user_state = await asyncio.to_thread(self.info.user_state, self.address)
             return user_state
         except Exception as e:
             logger.error(f"获取账户信息失败: {e}")
@@ -543,4 +547,89 @@ class HyperliquidClient(BaseExchangeClient):
         except Exception as e:
             logger.warning(f"⚠️  获取K线数据失败: {e}, 返回空列表")
             return []
+    
+    async def approve_agent(self, name: Optional[str] = None) -> Tuple[Dict[str, Any], str]:
+        """
+        授权一个 Agent 地址，允许其代表主账户进行交易（但无法转账/提现）
+        
+        Args:
+            name: 可选的 Agent 名称，命名的 Agent 会持久化授权
+            
+        Returns:
+            (approve_result, agent_private_key): 授权结果和 Agent 私钥
+        """
+        try:
+            # 同步调用 SDK 的 approve_agent 方法
+            loop = asyncio.get_event_loop()
+            approve_result, agent_key = await loop.run_in_executor(
+                None,
+                lambda: self.exchange.approve_agent(name)
+            )
+            
+            if approve_result.get("status") == "ok":
+                # 获取 agent 地址用于日志
+                agent_account = eth_account.Account.from_key(agent_key)
+                logger.info(f"✅ Agent 授权成功: {agent_account.address}")
+                if name:
+                    logger.info(f"   Agent 名称: {name}")
+            else:
+                logger.error(f"❌ Agent 授权失败: {approve_result}")
+            
+            return approve_result, agent_key
+            
+        except Exception as e:
+            logger.error(f"❌ approve_agent 失败: {e}")
+            return {"status": "error", "message": str(e)}, ""
+    
+    @staticmethod
+    async def create_agent_client(
+        agent_private_key: str,
+        account_address: str,
+        testnet: bool = True
+    ) -> 'HyperliquidClient':
+        """
+        使用 Agent 私钥创建一个新的 HyperliquidClient 实例
+        
+        Args:
+            agent_private_key: Agent 的私钥
+            account_address: 主账户地址
+            testnet: 是否使用测试网
+            
+        Returns:
+            HyperliquidClient: Agent 客户端实例
+        """
+        try:
+            # 创建 Agent 账户
+            agent_account: LocalAccount = eth_account.Account.from_key(agent_private_key)
+            logger.info(f"🤖 创建 Agent 客户端: {agent_account.address}")
+            logger.info(f"   主账户: {account_address}")
+            
+            # 使用官方SDK
+            if testnet:
+                base_url = constants.TESTNET_API_URL
+            else:
+                base_url = constants.MAINNET_API_URL
+            
+            # 初始化 Info 和 Exchange
+            info = Info(base_url, skip_ws=True)
+            exchange = Exchange(
+                wallet=agent_account,
+                base_url=base_url,
+                account_address=account_address  # 关键：设置主账户地址
+            )
+            
+            # 创建 client 实例
+            client = HyperliquidClient(agent_private_key, testnet)
+            
+            # 替换为 Agent 的 exchange 实例
+            client.exchange = exchange
+            client.info = info
+            
+            logger.info(f"✅ Agent 客户端创建成功")
+            
+            return client
+            
+        except Exception as e:
+            logger.error(f"❌ create_agent_client 失败: {e}")
+            raise
 

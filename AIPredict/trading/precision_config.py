@@ -130,13 +130,17 @@ class PrecisionConfig:
                         price_precision = 4
                         price_tick = "0.0001"
                     
+                    # 🚀 同时缓存最大杠杆（优化开仓速度）
+                    max_leverage = asset.get('maxLeverage', 1)
+                    
                     precision_config = {
                         "quantity_precision": sz_decimals,
                         "price_precision": price_precision,
                         "quantity_step": quantity_step,
                         "price_tick": price_tick,
                         "min_quantity": min_quantity,
-                        "min_notional": "10"
+                        "min_notional": "10",
+                        "max_leverage": max_leverage  # 新增：缓存最大杠杆
                     }
                     
                     # 缓存配置
@@ -144,7 +148,7 @@ class PrecisionConfig:
                     
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.info(f"✅ [{coin}] 动态精度配置: 价格精度={price_precision}, price_tick={price_tick}")
+                    logger.info(f"✅ [{coin}] 动态精度配置: 价格精度={price_precision}, price_tick={price_tick}, 最大杠杆={max_leverage}x")
                     
                     return precision_config
         except Exception as e:
