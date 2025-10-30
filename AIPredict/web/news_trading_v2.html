@@ -1749,12 +1749,10 @@
                     },
                     primaryType: 'HyperliquidTransaction:ApproveAgent',
                     message: {
-                        type: 'approveAgent',
+                        hyperliquidChain: 'Mainnet',  // 使用主网
                         agentAddress: agentAddress,
                         agentName: agentName,
-                        nonce: nonce,
-                        signatureChainId: '0x66eee',  // Arbitrum One
-                        hyperliquidChain: 'Mainnet'  // 使用主网
+                        nonce: nonce
                     }
                 };
                 
