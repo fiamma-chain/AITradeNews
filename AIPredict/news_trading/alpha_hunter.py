@@ -96,11 +96,11 @@ class AlphaHunter:
                 margin_per_coin=margin_per_coin
             )
             
-            # 创建 Agent 客户端
+            # 创建 Agent 客户端（使用主网）
             agent_client = await HyperliquidClient.create_agent_client(
                 agent_private_key=agent_private_key,
                 account_address=user_address,
-                testnet=settings.use_testnet
+                testnet=False  # Alpha Hunter 始终使用主网
             )
             
             # 验证账户余额
