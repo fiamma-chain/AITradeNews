@@ -183,23 +183,8 @@ class NewsTradeHandler:
                     await platform_trader.close_position(coin, "消息触发平仓")
                     
                     logger.info(f"✅ [{ai_name}] [{platform_name}] {coin} 平仓完成")
-                    
-                    # 同步本地记录：如果本地没有记录但交易所有持仓，清理差异
-                    if coin not in platform_trader.positions:
-                        logger.warning(
-                            f"⚠️  [{ai_name}] [{platform_name}] 本地无 {coin} 记录，但交易所有持仓\n"
-                            f"   已平仓，本地与交易所已同步"
-                        )
                 else:
                     logger.info(f"ℹ️  [{ai_name}] [{platform_name}] 交易所无 {coin} 持仓")
-                    
-                    # 如果本地有记录但交易所没有，清除本地记录
-                    if coin in platform_trader.positions:
-                        logger.warning(
-                            f"⚠️  [{ai_name}] [{platform_name}] 本地有 {coin} 记录，但交易所无持仓\n"
-                            f"   清除本地无效记录"
-                        )
-                        del platform_trader.positions[coin]
                         
             except Exception as e:
                 logger.error(f"❌ [{ai_name}] [{platform_name}] 查询/平仓失败: {e}")
@@ -220,17 +205,17 @@ class NewsTradeHandler:
                     account_info = await client.get_account_info()
                     
                     # 计算账户余额
-                    if hasattr(account_info, 'get'):
-                        # Aster返回字典
-                        if 'totalMarginBalance' in account_info:
-                            account_balance = float(account_info.get('totalMarginBalance', 0))
+                    account_balance = 0
+                    
+                    if isinstance(account_info, dict):
+                        # Hyperliquid: withdrawable 字段
+                        if 'withdrawable' in account_info:
+                            account_balance = float(account_info['withdrawable'])
+                        # Aster: totalMarginBalance 或 totalWalletBalance
+                        elif 'totalMarginBalance' in account_info:
+                            account_balance = float(account_info['totalMarginBalance'])
                         elif 'totalWalletBalance' in account_info:
-                            account_balance = float(account_info.get('totalWalletBalance', 0))
-                        else:
-                            account_balance = 0
-                    else:
-                        # Hyperliquid可能返回对象
-                        account_balance = getattr(account_info, 'withdrawable', 0)
+                            account_balance = float(account_info['totalWalletBalance'])
                     
                     if account_balance == 0:
                         logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 无法获取账户余额，跳过")
@@ -263,11 +248,11 @@ class NewsTradeHandler:
                     logger.error(f"❌ [{ai_name}] [{platform_name}] 获取账户信息失败: {e}")
                     continue
                 
-                # 获取价格
+                # 获取价格和最大杠杆
                 market_data = None
                 
                 if hasattr(client, 'get_market_data'):
-                    market_data = client.get_market_data(coin)
+                    market_data = await client.get_market_data(coin)
                 elif hasattr(trader, 'data_source_client'):
                     market_data = trader.data_source_client.get_market_data(coin)
                 
@@ -280,40 +265,64 @@ class NewsTradeHandler:
                     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] {coin} 价格为0，跳过")
                     continue
                 
+                # 🔑 检查平台最大杠杆限制
+                platform_max_leverage = market_data.get("maxLeverage", None)
+                actual_leverage = strategy.leverage
+                
+                if platform_max_leverage and actual_leverage > platform_max_leverage:
+                    logger.warning(
+                        f"⚠️  [{ai_name}] [{platform_name}] AI建议杠杆 {actual_leverage}x 超过 {coin} 最大杠杆 {platform_max_leverage}x\n"
+                        f"   自动调整为: {platform_max_leverage}x"
+                    )
+                    actual_leverage = platform_max_leverage
+                
                 # 设置杠杆
                 try:
                     if hasattr(client, 'update_leverage'):
-                        client.update_leverage(coin, strategy.leverage, is_cross=True)
+                        client.update_leverage(coin, actual_leverage, is_cross=True)
                     elif hasattr(client, 'update_leverage_async'):
-                        await client.update_leverage_async(coin, strategy.leverage)
+                        await client.update_leverage_async(coin, actual_leverage)
                 except Exception as e:
                     logger.warning(f"⚠️  [{ai_name}] [{platform_name}] 设置杠杆失败: {e}")
                 
-                # 计算下单数量（基于实际保证金）
-                position_value = actual_margin * strategy.leverage
+                # 计算下单数量（基于实际保证金和调整后的杠杆）
+                position_value = actual_margin * actual_leverage
                 size = position_value / current_price
                 
-                # 下单
+                # 下单（新闻交易使用市价单，立即成交）
                 is_buy = (strategy.direction == "long")
+                
+                # 市价单：使用当前价格 +/- 5% 作为保护价格（防止滑点过大）
+                if is_buy:
+                    # 买入：愿意最高支付当前价 * 1.05
+                    limit_price = current_price * 1.05
+                else:
+                    # 卖出：愿意最低接受当前价 * 0.95
+                    limit_price = current_price * 0.95
                 
                 result = await client.place_order(
                     coin=coin,
                     is_buy=is_buy,
-                    sz=size,
-                    limit_px=current_price * (1.01 if is_buy else 0.99),
+                    size=size,
+                    price=limit_price,
+                    order_type="Market",  # 市价单，立即成交
                     reduce_only=False,
-                    leverage=strategy.leverage
+                    leverage=actual_leverage
                 )
                 
                 if result.get("status") == "ok":
+                    leverage_info = f"{actual_leverage}x"
+                    if actual_leverage != strategy.leverage:
+                        leverage_info += f" (AI建议: {strategy.leverage}x)"
+                    
                     logger.info(
                         f"✅ [{ai_name}] [{platform_name}] 开仓成功\n"
                         f"   币种: {coin}\n"
                         f"   方向: {strategy.direction}\n"
-                        f"   杠杆: {strategy.leverage}x\n"
+                        f"   杠杆: {leverage_info}\n"
                         f"   价格: ${current_price:.2f}\n"
                         f"   账户余额: ${account_balance:.2f}\n"
-                        f"   仓位比例: {position_size_pct*100:.0f}%\n"
+                        f"   保证金比例: {margin_pct*100:.0f}%\n"
                         f"   实际保证金: ${actual_margin:.2f}\n"
                         f"   仓位价值: ${position_value:.2f}\n"
                         f"   消息来源: {message.source}"

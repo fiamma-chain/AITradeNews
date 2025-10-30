@@ -56,9 +56,10 @@ class BinanceListingListener(BaseMessageListener):
         """（此监听器不需要订阅）"""
         pass
     
-    async def process_message(self, message: dict):
-        """处理消息（此监听器不使用此方法，直接在 _poll_trading_pairs 中处理）"""
-        pass
+    async def process_message(self, message):
+        """处理上币消息"""
+        if self.callback:
+            await self.callback(message)
     
     async def start(self):
         """启动轮询"""
@@ -148,12 +149,11 @@ class BinanceListingListener(BaseMessageListener):
                         # 检查是否是监控的币种
                         if is_supported_coin(coin):
                             message = ListingMessage(
-                                source=self.source,
+                                source=self.source.value,
                                 coin_symbol=coin,
-                                title=f"Binance Listed {coin}/{self.pair_suffix}",
-                                content=f"New trading pair detected: {symbol}",
-                                url=f"https://www.binance.com/en/trade/{coin}_{self.pair_suffix}",
-                                timestamp=datetime.now()
+                                raw_message=f"Binance Listed {coin}/{self.pair_suffix} - New trading pair detected: {symbol}",
+                                timestamp=datetime.now(),
+                                url=f"https://www.binance.com/en/trade/{coin}_{self.pair_suffix}"
                             )
                             
                             logger.info(f"🎯 [{self.source.value}] 发现监控币种: {coin}")

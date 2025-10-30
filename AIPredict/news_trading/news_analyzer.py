@@ -151,7 +151,14 @@ Rules:
                             return result["content"][0]["text"]
                 
                 elif isinstance(self.ai_trader, (GPTTrader, DeepSeekTrader, GrokTrader)):
-                    async with httpx.AsyncClient(timeout=30.0) as client:
+                    # 配置代理（Grok需要）
+                    import os
+                    proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
+                    client_kwargs = {"timeout": 30.0}
+                    if proxy:
+                        client_kwargs["proxy"] = proxy
+                    
+                    async with httpx.AsyncClient(**client_kwargs) as client:
                         response = await client.post(
                             self.ai_trader.api_url,
                             headers={
@@ -251,7 +258,13 @@ Rules:
             from config.settings import settings
             
             direction_raw = parsed.get("DIRECTION", "LONG").upper()
-            leverage = int(float(parsed.get("LEVERAGE", 20)))
+            
+            # 解析杠杆（处理 "50x" 或 "50" 格式）
+            leverage_str = parsed.get("LEVERAGE", "20").strip()
+            if leverage_str.endswith("x") or leverage_str.endswith("X"):
+                leverage_str = leverage_str[:-1]  # 移除 'x' 或 'X'
+            leverage = int(float(leverage_str))
+            
             position_size_pct = float(parsed.get("POSITION_SIZE_PCT", 0.2))  # 已废弃，保留用于向后兼容
             stop_loss = float(parsed.get("STOP_LOSS", settings.news_stop_loss_pct))
             take_profit = float(parsed.get("TAKE_PROFIT", settings.news_take_profit_pct))

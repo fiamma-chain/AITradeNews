@@ -66,7 +66,7 @@ class PrecisionConfig:
     @classmethod
     def get_hyperliquid_precision(cls, coin: str) -> Dict:
         """
-        获取Hyperliquid平台的精度配置
+        获取Hyperliquid平台的精度配置（动态查询）
         
         Args:
             coin: 币种符号（如 BTC, ETH）
@@ -74,7 +74,49 @@ class PrecisionConfig:
         Returns:
             精度配置字典
         """
-        return cls.HYPERLIQUID_PRECISION.get(coin, cls.HYPERLIQUID_PRECISION["BTC"])
+        # 先检查缓存
+        if coin in cls.HYPERLIQUID_PRECISION:
+            return cls.HYPERLIQUID_PRECISION[coin]
+        
+        # 动态从 Hyperliquid 查询精度
+        try:
+            from hyperliquid.info import Info
+            from hyperliquid.utils import constants
+            
+            info = Info(constants.MAINNET_API_URL, skip_ws=True)
+            meta = info.meta_and_asset_ctxs()
+            
+            for asset in meta[0]['universe']:
+                if asset['name'] == coin:
+                    sz_decimals = asset.get('szDecimals', 5)
+                    
+                    # 根据 szDecimals 计算 quantity_step
+                    if sz_decimals == 0:
+                        quantity_step = "1"  # 整数
+                        min_quantity = "1"
+                    else:
+                        quantity_step = f"0.{'0' * (sz_decimals - 1)}1"
+                        min_quantity = quantity_step
+                    
+                    precision_config = {
+                        "quantity_precision": sz_decimals,
+                        "price_precision": 0,
+                        "quantity_step": quantity_step,
+                        "price_tick": "1",
+                        "min_quantity": min_quantity,
+                        "min_notional": "10"
+                    }
+                    
+                    # 缓存配置
+                    cls.HYPERLIQUID_PRECISION[coin] = precision_config
+                    return precision_config
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"⚠️  无法获取 {coin} 的精度配置，使用BTC默认值: {e}")
+        
+        # 失败时返回 BTC 配置
+        return cls.HYPERLIQUID_PRECISION["BTC"]
     
     @classmethod
     def format_aster_quantity(cls, coin: str, quantity: float, round_down: bool = True) -> Tuple[float, str]:

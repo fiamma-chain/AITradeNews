@@ -42,9 +42,10 @@ class UpbitListingListener(BaseMessageListener):
         """（此监听器不需要订阅）"""
         pass
     
-    async def process_message(self, message: dict):
-        """处理消息（此监听器不使用此方法，直接在 _poll_trading_pairs 中处理）"""
-        pass
+    async def process_message(self, message):
+        """处理上币消息"""
+        if self.callback:
+            await self.callback(message)
     
     async def start(self):
         """启动轮询"""
@@ -132,12 +133,11 @@ class UpbitListingListener(BaseMessageListener):
                         # 检查是否是监控的币种
                         if is_supported_coin(coin):
                             message = ListingMessage(
-                                source=MessageSource.UPBIT,
+                                source=MessageSource.UPBIT.value,
                                 coin_symbol=coin,
-                                title=f"Upbit Listed {coin}/KRW",
-                                content=f"New trading pair detected: {market_code}",
-                                url=f"https://upbit.com/exchange?code=CRIX.UPBIT.{market_code}",
-                                timestamp=datetime.now()
+                                raw_message=f"Upbit Listed {coin}/KRW - New trading pair detected: {market_code}",
+                                timestamp=datetime.now(),
+                                url=f"https://upbit.com/exchange?code=CRIX.UPBIT.{market_code}"
                             )
                             
                             logger.info(f"🎯 [upbit] 发现监控币种: {coin}")

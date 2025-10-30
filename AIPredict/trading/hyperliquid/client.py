@@ -1,6 +1,7 @@
 """
 Hyperliquid 交易客户端（使用官方SDK）
 """
+import asyncio
 import logging
 from typing import Dict, List, Optional
 from hyperliquid.info import Info
@@ -83,6 +84,32 @@ class HyperliquidClient(BaseExchangeClient):
             logger.error(f"获取账户信息失败: {e}")
             return {}
     
+    def get_max_leverage(self, coin: str) -> int:
+        """
+        获取币种的最大杠杆
+        
+        Args:
+            coin: 币种符号 (如 'BTC', 'ETH')
+            
+        Returns:
+            最大杠杆倍数
+        """
+        try:
+            meta_and_asset_ctxs = self.info.meta_and_asset_ctxs()
+            
+            # 查找币种
+            for asset in meta_and_asset_ctxs[0]['universe']:
+                if asset['name'] == coin:
+                    max_leverage = asset.get('maxLeverage', 1)
+                    logger.debug(f"📊 [{coin}] Hyperliquid 最大杠杆: {max_leverage}x")
+                    return max_leverage
+            
+            logger.warning(f"⚠️  [{coin}] 未找到最大杠杆信息，默认使用 1x")
+            return 1
+        except Exception as e:
+            logger.error(f"❌ 获取 {coin} 最大杠杆失败: {e}")
+            return 1
+    
     async def get_market_data(self, coin: str) -> Dict:
         """
         获取市场数据
@@ -91,7 +118,7 @@ class HyperliquidClient(BaseExchangeClient):
             coin: 币种符号 (如 'BTC', 'ETH')
             
         Returns:
-            市场数据
+            市场数据（包含 maxLeverage）
         """
         try:
             # 获取所有市场数据
@@ -107,11 +134,13 @@ class HyperliquidClient(BaseExchangeClient):
             # 获取详细的市场上下文
             meta_and_asset_ctxs = self.info.meta_and_asset_ctxs()
             
-            # 查找币种索引
+            # 查找币种索引和最大杠杆
             asset_index = None
+            max_leverage = 1
             for i, asset in enumerate(meta_and_asset_ctxs[0]['universe']):
                 if asset['name'] == coin:
                     asset_index = i
+                    max_leverage = asset.get('maxLeverage', 1)
                     break
             
             if asset_index is None:
@@ -132,11 +161,13 @@ class HyperliquidClient(BaseExchangeClient):
             return {
                 "coin": coin,
                 "price": mark_price,
+                "markPx": mark_price,  # 添加 markPx 键以兼容旧代码
                 "mark_price": mark_price,
                 "funding_rate": funding,
                 "open_interest": open_interest,
                 "change_24h": change_24h,
                 "volume": volume_usd,
+                "maxLeverage": max_leverage,  # 🔑 添加最大杠杆信息
                 "raw_ctx": ctx
             }
         except Exception as e:

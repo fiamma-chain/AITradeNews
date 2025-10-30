@@ -53,7 +53,14 @@ class GrokTrader(AITradingModel):
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                async with httpx.AsyncClient(timeout=45.0) as client:  # 增加timeout
+                # 配置代理
+                import os
+                proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
+                client_kwargs = {"timeout": 45.0}
+                if proxy:
+                    client_kwargs["proxy"] = proxy
+                
+                async with httpx.AsyncClient(**client_kwargs) as client:
                     response = await client.post(
                         self.api_url,
                         headers={
