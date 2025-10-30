@@ -220,17 +220,31 @@ class NewsTradeHandler:
                 logger.warning(f"⚠️  [{ai_name}] 用户 {user_short} 账户余额为0，跳过")
                 return
             
-            # 2. 计算保证金（使用用户配置的每币种保证金）
-            margin_per_coin = user_config.margin_per_coin.get(coin, 100.0)
-            actual_margin = min(margin_per_coin, account_balance)
+            # 2. 检查用户是否为该币种配置了保证金
+            if coin not in user_config.margin_per_coin:
+                logger.info(f"⏭️  [{ai_name}] 用户 {user_short} 未配置 {coin} 的保证金，跳过交易")
+                return
             
-            logger.info(
-                f"💰 [{ai_name}] 账户余额: ${account_balance:.2f}, "
-                f"用户配置保证金: ${margin_per_coin:.2f}, "
-                f"实际保证金: ${actual_margin:.2f}"
-            )
+            # 3. 计算保证金（使用用户输入的金额作为最大保证金）
+            user_max_margin = user_config.margin_per_coin[coin]
+            actual_margin = min(user_max_margin, account_balance)
             
-            # 3. 获取并验证最大杠杆
+            if actual_margin < user_max_margin:
+                logger.warning(
+                    f"⚠️  [{ai_name}] 用户 {user_short} 账户余额不足\n"
+                    f"   用户输入金额: ${user_max_margin:.2f}\n"
+                    f"   账户余额: ${account_balance:.2f}\n"
+                    f"   实际使用: ${actual_margin:.2f}"
+                )
+            else:
+                logger.info(
+                    f"💰 [{ai_name}] 用户 {user_short} 保证金配置\n"
+                    f"   用户输入金额: ${user_max_margin:.2f}\n"
+                    f"   账户余额: ${account_balance:.2f}\n"
+                    f"   实际使用: ${actual_margin:.2f} (已限制为用户输入金额)"
+                )
+            
+            # 4. 获取并验证最大杠杆
             from trading.precision_config import PrecisionConfig
             precision_config = PrecisionConfig.get_hyperliquid_precision(coin)
             platform_max_leverage = precision_config.get("max_leverage", 50)
@@ -242,7 +256,7 @@ class NewsTradeHandler:
                     f"   自动调整为: {actual_leverage}x"
                 )
             
-            # 4. 获取当前价格
+            # 5. 获取当前价格
             market_data = await agent_client.get_market_data(coin)
             current_price = float(market_data.get("markPx", 0))
             
@@ -250,11 +264,11 @@ class NewsTradeHandler:
                 logger.warning(f"⚠️  [{ai_name}] {coin} 价格为0，跳过")
                 return
             
-            # 5. 计算下单数量
+            # 6. 计算下单数量
             position_value = actual_margin * actual_leverage
             size = position_value / current_price
             
-            # 6. 下单（市价单，5%价格保护）
+            # 7. 下单（市价单，5%价格保护）
             is_buy = (strategy.direction.lower() == "long")
             protection = 0.05
             limit_price = current_price * (1 + protection if is_buy else 1 - protection)
@@ -279,7 +293,7 @@ class NewsTradeHandler:
             
             logger.info(f"✅ [{ai_name}] 订单成功: {result}")
             
-            # 7. 推送事件：交易开仓成功
+            # 8. 推送事件：交易开仓成功
             await event_manager.push_event("trade_opened", {
                 "ai": ai_name,
                 "coin": coin,
