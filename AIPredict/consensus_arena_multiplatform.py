@@ -2460,14 +2460,14 @@ async def register_alpha_hunter(request: dict):
         
         import httpx
         
-        # 构造 Hyperliquid approve_agent action
+        # 构造 Hyperliquid approve_agent action（按照 SDK 的字段顺序）
         action = {
             "type": "approveAgent",
-            "signatureChainId": "0x66eee",  # Arbitrum One chain ID
-            "hyperliquidChain": "Testnet" if settings.hyperliquid_testnet else "Mainnet",
             "agentAddress": agent_address,
             "agentName": agent_name,
-            "nonce": nonce
+            "nonce": nonce,
+            "signatureChainId": "0x66eee",  # Arbitrum One chain ID
+            "hyperliquidChain": "Mainnet" if not settings.hyperliquid_testnet else "Testnet"
         }
         
         # 解析签名（hex string -> {r, s, v}）
