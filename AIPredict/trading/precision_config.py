@@ -98,17 +98,54 @@ class PrecisionConfig:
                         quantity_step = f"0.{'0' * (sz_decimals - 1)}1"
                         min_quantity = quantity_step
                     
+                    # 🚀 动态推断价格精度（从市场数据）
+                    # Hyperliquid API 不直接返回价格精度，需要从实际价格推断
+                    try:
+                        ctx = meta[1][asset.get('name', coin)]
+                        mid_price = float(ctx.get('midPx', 0))
+                        
+                        # 根据价格范围推断合理的价格精度
+                        if mid_price >= 1000:
+                            # 高价币（如BTC）：$10000+，使用整数
+                            price_precision = 0
+                            price_tick = "1"
+                        elif mid_price >= 100:
+                            # 中高价币：$100-$1000，使用1位小数
+                            price_precision = 1
+                            price_tick = "0.1"
+                        elif mid_price >= 10:
+                            # 中价币：$10-$100，使用2位小数
+                            price_precision = 2
+                            price_tick = "0.01"
+                        elif mid_price >= 1:
+                            # 低价币（如ASTER）：$1-$10，使用4位小数
+                            price_precision = 4
+                            price_tick = "0.0001"
+                        else:
+                            # 极低价币：<$1，使用6位小数
+                            price_precision = 6
+                            price_tick = "0.000001"
+                    except Exception:
+                        # 默认使用4位小数（适用于大多数币种）
+                        price_precision = 4
+                        price_tick = "0.0001"
+                    
                     precision_config = {
                         "quantity_precision": sz_decimals,
-                        "price_precision": 0,
+                        "price_precision": price_precision,
                         "quantity_step": quantity_step,
-                        "price_tick": "1",
+                        "price_tick": price_tick,
                         "min_quantity": min_quantity,
                         "min_notional": "10"
                     }
                     
                     # 缓存配置
                     cls.HYPERLIQUID_PRECISION[coin] = precision_config
+                    
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"✅ [{coin}] 动态精度配置: 价格精度={price_precision}, price_tick={price_tick}")
+                    
                     return precision_config
         except Exception as e:
             import logging

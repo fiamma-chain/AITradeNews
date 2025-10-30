@@ -23,6 +23,8 @@ class NewsTradeHandler:
         self.individual_traders = []  # 将由外部设置
         self.configured_ais = []  # 配置的AI列表
         self.analyzers = {}  # AI分析器缓存
+        self.recent_messages = {}  # 最近处理的消息 {coin: timestamp}
+        self.message_cooldown = 60  # 消息冷却时间（秒），同一币种60秒内只处理一次
         
         logger.info("🚀 消息交易处理器初始化")
     
@@ -72,6 +74,21 @@ class NewsTradeHandler:
         if self.monitored_coins and coin.upper() not in self.monitored_coins:
             logger.info(f"⏭️  [消息交易] 跳过未监控的币种: {coin} (监控列表: {self.monitored_coins})")
             return
+        
+        # 🚀 消息去重：检查是否在冷却期内
+        import time
+        current_time = time.time()
+        last_processed = self.recent_messages.get(coin)
+        
+        if last_processed:
+            time_since_last = current_time - last_processed
+            if time_since_last < self.message_cooldown:
+                logger.info(f"⏭️  [消息去重] {coin} 在冷却期内 ({time_since_last:.1f}s < {self.message_cooldown}s)，跳过重复处理")
+                logger.info(f"   来源: {message.source} (已在 {self.message_cooldown - time_since_last:.1f}秒后重新处理)")
+                return
+        
+        # 记录处理时间
+        self.recent_messages[coin] = current_time
         
         logger.info(f"📬 [消息交易] 收到上币消息: {coin} (来源: {message.source})")
         logger.info(f"🤖 准备让 {len(self.analyzers)} 个AI分析...")
