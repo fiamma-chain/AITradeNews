@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
     """
-    从Twitter URL获取用户头像并保存到本地
+    从Twitter URL获取用户头像并保存到本地（优化版：快速失败）
     
     Args:
         twitter_url: Twitter/X的URL (https://twitter.com/xxx 或 https://x.com/xxx)
@@ -30,74 +30,34 @@ async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
         username = username_match.group(1)
         logger.info(f"🔍 提取Twitter用户名: {username}")
         
-        # 方案1: 直接访问Twitter，获取头像（通过HTML解析）
         avatar_url = None
         
+        # 🚀 优化：优先使用快速服务，跳过慢速Twitter直接访问
+        # 方案1: 使用unavatar.io服务（最快）
         try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-            }
+            unavatar_url = f"https://unavatar.io/x/{username}?fallback=false"
             
-            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
-                # 尝试访问Twitter页面
-                response = await client.get(f"https://x.com/{username}")
+            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:  # 减少超时 15s→5s
+                response = await client.get(unavatar_url)
                 
-                if response.status_code == 200:
-                    # 从HTML中提取头像URL
-                    # Twitter头像通常在og:image或profile_image_url中
-                    og_image_match = re.search(r'<meta property="og:image" content="([^"]+)"', response.text)
-                    
-                    if og_image_match:
-                        avatar_url = og_image_match.group(1)
-                        logger.info(f"✅ 从Twitter获取到头像URL: {avatar_url}")
-                    else:
-                        # 尝试其他模式
-                        profile_img_match = re.search(r'"profile_image_url_https":"([^"]+)"', response.text)
-                        if profile_img_match:
-                            avatar_url = profile_img_match.group(1).replace(r'\/', '/')
-                            logger.info(f"✅ 从Twitter JSON获取到头像URL: {avatar_url}")
-        
+                if response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'):
+                    avatar_url = unavatar_url
+                    logger.info(f"✅ 从unavatar.io获取到头像URL: {avatar_url}")
+                else:
+                    logger.warning(f"⚠️ unavatar.io返回异常: {response.status_code}")
         except Exception as e:
-            logger.warning(f"⚠️ 直接访问Twitter失败: {e}")
+            logger.warning(f"⚠️ unavatar.io获取失败: {e}")
         
-        # 方案2: 使用unavatar.io服务获取Twitter头像
-        # 新格式: https://unavatar.io/x/{username}
+        # 方案2: 备用头像服务（快速生成）
         if not avatar_url:
             try:
-                # 使用unavatar.io服务（自动获取最新Twitter头像）
-                unavatar_url = f"https://unavatar.io/x/{username}?fallback=false"
+                backup_url = f"https://ui-avatars.com/api/?name={username}&size=200&background=667eea&color=fff&bold=true"
                 
-                async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-                    response = await client.get(unavatar_url)
-                    
-                    if response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'):
-                        avatar_url = unavatar_url
-                        logger.info(f"✅ 从unavatar.io获取到头像URL: {avatar_url}")
-                    else:
-                        logger.warning(f"⚠️ unavatar.io返回异常: {response.status_code}")
-            except Exception as e:
-                logger.warning(f"⚠️ unavatar.io获取失败: {e}")
-        
-        # 方案3: 备用头像服务
-        if not avatar_url:
-            try:
-                # 尝试其他头像服务
-                backup_urls = [
-                    f"https://ui-avatars.com/api/?name={username}&size=200&background=667eea&color=fff&bold=true",
-                ]
-                
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    for backup_url in backup_urls:
-                        try:
-                            response = await client.get(backup_url)
-                            if response.status_code == 200:
-                                avatar_url = backup_url
-                                logger.info(f"✅ 从备用服务获取到头像URL: {backup_url}")
-                                break
-                        except:
-                            continue
+                async with httpx.AsyncClient(timeout=3.0) as client:  # 更短超时
+                    response = await client.get(backup_url)
+                    if response.status_code == 200:
+                        avatar_url = backup_url
+                        logger.info(f"✅ 从备用服务获取到头像URL: {backup_url}")
             except Exception as e:
                 logger.warning(f"⚠️ 备用服务获取失败: {e}")
         
@@ -106,7 +66,7 @@ async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
             return None
         
         # 下载头像
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:  # 减少超时
             img_response = await client.get(avatar_url)
             
             if img_response.status_code != 200:
