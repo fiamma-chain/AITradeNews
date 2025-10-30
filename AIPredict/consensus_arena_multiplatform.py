@@ -948,13 +948,19 @@ class ConsensusArena:
 
 
 arena: Optional[ConsensusArena] = None
+alpha_hunter = None  # Alpha Hunter 实例（用于新闻交易）
 
 
 @app.on_event("startup")
 async def startup_event():
-    global arena
+    global arena, alpha_hunter
     arena = ConsensusArena()
     asyncio.create_task(arena.start())
+    
+    # 初始化 Alpha Hunter
+    from news_trading.alpha_hunter import AlphaHunter
+    alpha_hunter = AlphaHunter()
+    logger.info("✅ Alpha Hunter 已初始化")
 
 
 @app.on_event("shutdown")
@@ -1415,9 +1421,13 @@ async def start_news_trading(request: dict = None):
     """启动消息驱动交易系统（支持动态更新监控币种列表）"""
     global news_listeners, news_listener_tasks
     
-    # 检查arena是否已初始化
-    if not arena or not arena.individual_traders:
-        return {"error": "Arena未启动或没有独立AI交易者"}
+    # 检查 Alpha Hunter 是否已初始化
+    if not alpha_hunter:
+        return {"error": "Alpha Hunter 未初始化"}
+    
+    # 检查是否有注册的用户
+    if not alpha_hunter.configs:
+        return {"error": "没有注册的用户，请先在 Alpha Hunter 中注册"}
     
     try:
         # 获取前端传递的激活币种列表
@@ -1426,15 +1436,26 @@ async def start_news_trading(request: dict = None):
             monitored_coins = [coin.upper() for coin in request['coins']]
             logger.info(f"📡 前端激活的监控币种: {monitored_coins}")
         else:
-            # 如果前端未传递，使用所有配置的币种
-            from news_trading.config import SUPPORTED_COINS
-            monitored_coins = [coin.upper() for coin in SUPPORTED_COINS]
-            logger.info(f"📡 使用所有配置的监控币种: {monitored_coins}")
+            # 如果前端未传递，使用所有注册用户监控的币种
+            all_coins = set()
+            for user_config in alpha_hunter.configs.values():
+                all_coins.update([c.upper() for c in user_config.monitored_coins])
+            monitored_coins = list(all_coins)
+            logger.info(f"📡 使用所有注册用户的监控币种: {monitored_coins}")
         
-        # 获取配置的AI列表
-        configured_ais = get_news_trading_ais()
-        if not configured_ais:
-            return {"error": "请在.env中配置NEWS_TRADING_AIS（如: claude,gpt,deepseek）"}
+        # 获取前端传递的激活 AI 列表
+        active_ais = []
+        if request and 'active_ais' in request:
+            active_ais = [ai.lower() for ai in request['active_ais']]
+            logger.info(f"🤖 前端激活的 AI: {active_ais}")
+        else:
+            # 如果前端未传递，使用配置文件中的 AI
+            from config.settings import get_news_trading_ais
+            active_ais = get_news_trading_ais()
+            logger.info(f"🤖 使用配置文件的 AI: {active_ais}")
+        
+        if not active_ais:
+            return {"error": "没有激活的 AI 模型"}
         
         # 准备API密钥字典
         ai_api_keys = {
@@ -1447,11 +1468,11 @@ async def start_news_trading(request: dict = None):
             "qwen": settings.qwen_api_key
         }
         
-        # 🔧 如果系统已在运行，只更新监控币种列表
+        # 🔧 如果系统已在运行，只更新监控币种列表和激活的 AI
         if news_listeners:
             news_handler.setup(
-                individual_traders=arena.individual_traders,
-                configured_ais=configured_ais,
+                alpha_hunter=alpha_hunter,
+                active_ais=active_ais,
                 ai_api_keys=ai_api_keys,
                 monitored_coins=monitored_coins  # 更新监控币种列表
             )
@@ -1464,8 +1485,8 @@ async def start_news_trading(request: dict = None):
         
         # 首次启动：配置处理器
         news_handler.setup(
-            individual_traders=arena.individual_traders,
-            configured_ais=configured_ais,
+            alpha_hunter=alpha_hunter,
+            active_ais=active_ais,
             ai_api_keys=ai_api_keys,
             monitored_coins=monitored_coins  # 传递监控币种列表
         )

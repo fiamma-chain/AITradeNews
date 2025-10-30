@@ -47,8 +47,19 @@ class AlphaHunter:
     async def initialize(self):
         """初始化 Alpha Hunter"""
         try:
-            # 初始化新闻分析器（复用 Grok AI）
-            self.news_analyzer = NewsAnalyzer()
+            # 初始化 Grok AI（用于新闻分析）
+            from ai_models.grok_trader import GrokTrader
+            grok_ai = GrokTrader(
+                api_key=settings.grok_api_key,
+                model=settings.grok_model
+            )
+            
+            # 初始化新闻分析器
+            self.news_analyzer = NewsAnalyzer(
+                ai_trader=grok_ai,
+                ai_name="grok",
+                min_confidence=60.0
+            )
             logger.info("✅ Alpha Hunter 初始化成功")
             
         except Exception as e:

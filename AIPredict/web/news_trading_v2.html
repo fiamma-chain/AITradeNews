@@ -1462,14 +1462,38 @@
                 card.classList.add('inactive');
                 
                 // 更新按钮状态
-                btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100())';
+                btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
                 btn.textContent = '▶ Activate';
                 
                 console.log(`⏹ Deactivated AI: ${aiKey}`);
             }
             
-            // TODO: 通知后端更新激活的 AI 列表
-            // 可以在这里调用 /api/alpha_hunter/update_ais 等接口
+            // 🚀 如果有币种正在监控，立即更新后端的 AI 列表
+            if (monitoredCoins.size > 0) {
+                try {
+                    const updateResponse = await fetch('/api/news_trading/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            coins: Array.from(monitoredCoins),
+                            active_ais: Array.from(activeAIs)
+                        })
+                    });
+                    
+                    const updateResult = await updateResponse.json();
+                    
+                    if (updateResponse.ok) {
+                        console.log(`✅ Updated active AIs: ${Array.from(activeAIs).join(', ')}`);
+                        addActivityMessage(`🔄 Updated AI list - Active: <span class="highlight">${activeAIs.size} model(s)</span>`);
+                    } else {
+                        console.error('Failed to update AI list:', updateResult.error);
+                    }
+                } catch (error) {
+                    console.error('Error updating AI list:', error);
+                }
+            }
         }
         
         // 切换币种监控
@@ -1502,7 +1526,8 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            coins: Array.from(monitoredCoins)  // 传递所有监控币种
+                            coins: Array.from(monitoredCoins),  // 传递所有监控币种
+                            active_ais: Array.from(activeAIs)   // 传递激活的 AI 列表
                         })
                     });
                     const startResult = await startResponse.json();
