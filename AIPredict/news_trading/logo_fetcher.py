@@ -1,5 +1,6 @@
 """
 从Twitter/X获取项目Logo
+使用第三方服务（unavatar.io）和备用方案
 """
 import httpx
 import re
@@ -32,12 +33,12 @@ async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
         
         avatar_url = None
         
-        # 🚀 优化：优先使用快速服务，跳过慢速Twitter直接访问
-        # 方案1: 使用unavatar.io服务（最快）
+        # 🚀 方案1: 使用unavatar.io服务（最快）
+        # 注：Twitter API 无法直接获取图片，仅返回URL，且需要复杂的OAuth认证
         try:
             unavatar_url = f"https://unavatar.io/x/{username}?fallback=false"
             
-            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:  # 减少超时 15s→5s
+            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
                 response = await client.get(unavatar_url)
                 
                 if response.status_code == 200 and response.headers.get('content-type', '').startswith('image/'):
@@ -48,7 +49,7 @@ async def fetch_twitter_avatar(twitter_url: str, symbol: str) -> str:
         except Exception as e:
             logger.warning(f"⚠️ unavatar.io获取失败: {e}")
         
-        # 方案2: 备用头像服务（快速生成）
+        # 🚀 方案2: 备用头像服务（快速生成）
         if not avatar_url:
             try:
                 backup_url = f"https://ui-avatars.com/api/?name={username}&size=200&background=667eea&color=fff&bold=true"
