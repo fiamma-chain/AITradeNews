@@ -2651,9 +2651,9 @@ async def get_alpha_hunter_positions(user_address: str):
                 "position_value": position_value,
                 "unrealized_pnl": unrealized_pnl,
                 "leverage": leverage.get("value", 1) if isinstance(leverage, dict) else leverage,
-                "liquidation_px": position_data.get("liquidationPx"),
-                "margin_used": position_data.get("marginUsed", 0),
-                "return_on_equity": position_data.get("returnOnEquity", 0)
+                "liquidation_px": float(position_data.get("liquidationPx", 0)) if position_data.get("liquidationPx") else 0,
+                "margin_used": float(position_data.get("marginUsed", 0)),
+                "return_on_equity": float(position_data.get("returnOnEquity", 0))
             })
         
         # 获取账户余额

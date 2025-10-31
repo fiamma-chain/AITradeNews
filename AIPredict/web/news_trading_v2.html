@@ -2109,9 +2109,13 @@
                     row.onmouseover = () => row.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
                     row.onmouseout = () => row.style.backgroundColor = 'transparent';
                     
+                    // 确保数据类型正确（API可能返回字符串）
+                    const marginUsed = parseFloat(pos.margin_used) || 0;
+                    const returnOnEquity = parseFloat(pos.return_on_equity) || 0;
+                    
                     const sideColor = pos.side === 'LONG' ? '#10b981' : '#ef4444';
                     const pnlColor = pos.unrealized_pnl >= 0 ? '#10b981' : '#ef4444';
-                    const roeColor = pos.return_on_equity >= 0 ? '#10b981' : '#ef4444';
+                    const roeColor = returnOnEquity >= 0 ? '#10b981' : '#ef4444';
                     
                     row.innerHTML = `
                         <td style="padding: 12px; font-weight: 600; color: white;">${pos.coin}</td>
@@ -2128,12 +2132,12 @@
                                 ${pos.leverage}x
                             </span>
                         </td>
-                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">$${pos.margin_used.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">$${marginUsed.toFixed(2)}</td>
                         <td style="padding: 12px; text-align: right; font-weight: 600; color: ${pnlColor};">
                             ${pos.unrealized_pnl >= 0 ? '+' : ''}$${pos.unrealized_pnl.toFixed(2)}
                         </td>
                         <td style="padding: 12px; text-align: right; font-weight: 600; color: ${roeColor};">
-                            ${pos.return_on_equity >= 0 ? '+' : ''}${(pos.return_on_equity * 100).toFixed(2)}%
+                            ${returnOnEquity >= 0 ? '+' : ''}${(returnOnEquity * 100).toFixed(2)}%
                         </td>
                         <td style="padding: 12px; text-align: center;">
                             <button 
