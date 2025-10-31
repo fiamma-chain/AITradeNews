@@ -101,34 +101,131 @@ class NewsTradeHandler:
             "ai_count": len(self.analyzers)
         })
         
-        # 为每个AI创建处理任务
-        # 🚀 并发执行所有激活的AI分析
-        # 为每个注册的用户，使用激活的 AI 进行分析和交易
+        # 🚀 AI 决策共享优化：每个 AI 只分析一次，所有用户共享决策结果
         if not self.alpha_hunter or not self.alpha_hunter.configs:
             logger.warning(f"⚠️  没有注册的用户，跳过交易")
             return
         
-        tasks = []
+        # 找出所有监控这个币种的用户
+        interested_users = []
         for user_address, user_config in self.alpha_hunter.configs.items():
-            # 检查用户是否监控这个币种
-            if coin.upper() not in [c.upper() for c in user_config.monitored_coins]:
-                continue
-            
-            # 为每个激活的 AI 创建任务
-            for ai_name in self.analyzers.keys():
-                task = self._handle_single_ai(user_address, user_config, ai_name, message)
-                tasks.append(task)
+            if coin.upper() in [c.upper() for c in user_config.monitored_coins]:
+                interested_users.append((user_address, user_config))
         
-        if not tasks:
+        if not interested_users:
             logger.info(f"⏭️  没有用户监控 {coin}，跳过")
             return
         
-        # 并发执行
-        logger.info(f"🚀 开始执行 {len(tasks)} 个任务（{len(self.alpha_hunter.configs)} 个用户 × {len(self.analyzers)} 个AI）")
-        await asyncio.gather(*tasks, return_exceptions=True)
+        logger.info(f"📊 {len(interested_users)} 个用户监控 {coin}，{len(self.analyzers)} 个AI将分析")
+        
+        # 为每个激活的 AI 创建分析任务（只分析一次）
+        ai_analysis_tasks = []
+        for ai_name in self.analyzers.keys():
+            task = self._analyze_and_execute_for_all_users(ai_name, message, interested_users)
+            ai_analysis_tasks.append(task)
+        
+        # 并发执行所有 AI 的分析和交易
+        logger.info(f"🚀 开始执行 {len(ai_analysis_tasks)} 个AI分析任务")
+        await asyncio.gather(*ai_analysis_tasks, return_exceptions=True)
+    
+    async def _analyze_and_execute_for_all_users(self, ai_name: str, message: ListingMessage, interested_users: list):
+        """
+        🚀 AI 决策共享：一次分析，多用户执行
+        
+        Args:
+            ai_name: AI 名称
+            message: 上币消息
+            interested_users: 监控该币种的用户列表 [(user_address, user_config), ...]
+        """
+        coin = message.coin_symbol
+        analyzer = self.analyzers.get(ai_name)
+        
+        if not analyzer:
+            logger.warning(f"⚠️  [{ai_name}] 分析器不存在")
+            return
+        
+        try:
+            # ⭐ 第一步：调用 AI 分析（只调用一次）
+            logger.info(f"🤖 [{ai_name}] 开始分析 {coin}...")
+            t1 = datetime.now()
+            strategy = await analyzer.analyze(message)
+            t2 = datetime.now()
+            
+            analysis_time = (t2 - t1).total_seconds()
+            logger.info(f"✅ [{ai_name}] 分析完成 ({analysis_time:.2f}s)")
+            
+            if not strategy or not strategy.should_trade:
+                logger.info(f"⏭️  [{ai_name}] 决定不交易 {coin}")
+                
+                # 推送事件：AI 决定不交易
+                await event_manager.push_event("ai_decision", {
+                    "ai_name": ai_name,
+                    "coin": coin,
+                    "decision": "skip",
+                    "reasoning": strategy.reasoning if strategy else "No strategy",
+                    "analysis_time": analysis_time
+                })
+                return
+            
+            logger.info(
+                f"📊 [{ai_name}] 交易策略:\n"
+                f"   方向: {strategy.direction}\n"
+                f"   杠杆: {strategy.leverage}x\n"
+                f"   信心度: {strategy.confidence}%"
+            )
+            
+            # 推送事件：AI 决策完成
+            await event_manager.push_event("ai_decision", {
+                "ai_name": ai_name,
+                "coin": coin,
+                "decision": strategy.direction,
+                "leverage": strategy.leverage,
+                "confidence": strategy.confidence,
+                "reasoning": strategy.reasoning,
+                "analysis_time": analysis_time
+            })
+            
+            # ⭐ 第二步：为所有监控该币种的用户并发执行交易
+            logger.info(f"🚀 [{ai_name}] 为 {len(interested_users)} 个用户执行交易...")
+            
+            execution_tasks = []
+            for user_address, user_config in interested_users:
+                agent_client = self.alpha_hunter.agent_clients.get(user_address)
+                if not agent_client:
+                    logger.warning(f"⚠️  用户 {user_address[:10]}... 的 Agent 客户端不存在")
+                    continue
+                
+                # 获取该币种的保证金
+                margin = user_config.margin_per_coin.get(coin.upper())
+                if margin is None:
+                    margin = user_config.margin_per_coin.get(coin)
+                
+                if margin is None:
+                    logger.warning(f"⚠️  用户 {user_address[:10]}... 未配置 {coin} 的保证金")
+                    continue
+                
+                # 创建执行任务
+                task = self._execute_trade(
+                    agent_client=agent_client,
+                    user_config=user_config,
+                    ai_name=ai_name,
+                    user_address=user_address,
+                    message=message,
+                    strategy=strategy,
+                    analysis_time=analysis_time
+                )
+                execution_tasks.append(task)
+            
+            # 并发执行所有用户的交易
+            if execution_tasks:
+                await asyncio.gather(*execution_tasks, return_exceptions=True)
+                logger.info(f"✅ [{ai_name}] 所有用户交易执行完成")
+            
+        except Exception as e:
+            logger.error(f"❌ [{ai_name}] 分析或执行失败: {e}", exc_info=True)
     
     async def _handle_single_ai(self, user_address: str, user_config, ai_name: str, message: ListingMessage):
-        """单个AI为单个用户处理消息"""
+        """单个AI为单个用户处理消息（已废弃，保留用于向后兼容）"""
         coin = message.coin_symbol
         analyzer = self.analyzers.get(ai_name)
         

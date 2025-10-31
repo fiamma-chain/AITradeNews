@@ -136,6 +136,71 @@ class AlphaHunter:
             logger.error(f"❌ 注册用户失败: {e}")
             return {"status": "error", "message": str(e)}
     
+    async def add_monitored_coin(
+        self,
+        user_address: str,
+        coin: str,
+        margin: float
+    ) -> Dict[str, Any]:
+        """
+        为已注册用户添加新的监控币种
+        
+        Args:
+            user_address: 用户地址
+            coin: 币种符号
+            margin: 该币种的保证金
+            
+        Returns:
+            操作结果
+        """
+        try:
+            # 检查用户是否已注册
+            config = self.configs.get(user_address)
+            if not config:
+                return {"status": "error", "message": "用户未注册，请先完成 Approve & Start"}
+            
+            # 检查币种是否已存在
+            if coin in config.monitored_coins:
+                return {"status": "error", "message": f"{coin} 已在监控列表中"}
+            
+            # 获取账户余额
+            agent_client = self.agent_clients.get(user_address)
+            if not agent_client:
+                return {"status": "error", "message": "Agent 客户端未找到"}
+            
+            account_info = await agent_client.get_account_info()
+            balance = float(account_info.get("withdrawable", 0))
+            
+            # 计算新的总保证金
+            current_total_margin = sum(float(v) for v in config.margin_per_coin.values())
+            new_total_margin = current_total_margin + margin
+            
+            if new_total_margin > balance:
+                return {
+                    "status": "error",
+                    "message": f"新增保证金后总额 ({new_total_margin} USDC) 超过账户余额 ({balance} USDC)"
+                }
+            
+            # 添加币种
+            config.monitored_coins.append(coin)
+            config.margin_per_coin[coin] = margin
+            
+            logger.info(f"✅ 用户 {user_address[:10]}... 添加监控币种: {coin} (保证金: {margin} USDC)")
+            logger.info(f"   当前监控币种: {config.monitored_coins}")
+            logger.info(f"   总保证金: {new_total_margin} USDC / {balance} USDC")
+            
+            return {
+                "status": "ok",
+                "message": f"成功添加 {coin} 到监控列表",
+                "monitored_coins": config.monitored_coins,
+                "total_margin": new_total_margin,
+                "balance": balance
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ 添加监控币种失败: {e}")
+            return {"status": "error", "message": str(e)}
+    
     async def start_monitoring(self, user_address: str) -> Dict[str, Any]:
         """开始监控（激活 Alpha Hunter）"""
         try:

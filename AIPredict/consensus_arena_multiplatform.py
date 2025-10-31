@@ -2559,6 +2559,29 @@ async def start_alpha_hunter(request: dict):
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/alpha_hunter/add_coin")
+async def add_coin_to_alpha_hunter(request: dict):
+    """为已注册用户添加新的监控币种"""
+    try:
+        user_address = request.get("user_address")
+        coin = request.get("coin")
+        margin = request.get("margin")
+        
+        if not user_address or not coin or margin is None:
+            return {"status": "error", "message": "缺少必要参数: user_address, coin, margin"}
+        
+        result = await alpha_hunter.add_monitored_coin(
+            user_address=user_address,
+            coin=coin,
+            margin=float(margin)
+        )
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ add_coin_to_alpha_hunter 失败: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 @app.post("/api/alpha_hunter/stop")
 async def stop_alpha_hunter(request: dict):
     """停止 Alpha Hunter 监控"""

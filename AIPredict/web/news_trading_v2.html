@@ -1692,6 +1692,67 @@
             try {
                 btn.disabled = true;
                 
+                // 🔧 检查用户是否已注册
+                const statusCheck = await fetch(`/api/alpha_hunter/status?user_address=${connectedWallet}`);
+                const statusResult = await statusCheck.json();
+                
+                if (statusResult.status === 'ok' && statusResult.is_registered) {
+                    // 用户已注册，直接添加新币种
+                    console.log('✅ User already registered, adding new coin...');
+                    btn.textContent = '➕ Adding new coin...';
+                    
+                    const addCoinResponse = await fetch('/api/alpha_hunter/add_coin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_address: connectedWallet,
+                            coin: selectedCoin,
+                            margin: parseFloat(investmentAmount)
+                        })
+                    });
+                    
+                    const addResult = await addCoinResponse.json();
+                    
+                    if (addResult.status !== 'ok') {
+                        throw new Error(addResult.message || 'Failed to add coin');
+                    }
+                    
+                    console.log('✅ Coin added successfully:', addResult);
+                    
+                    // 添加活动消息
+                    addActivityMessage(
+                        `🎯 <span style="color: #10b981;">Added ${selectedCoin}</span> ` +
+                        `with <span style="color: #10b981; font-weight: bold;">$${investmentAmount}</span> margin ` +
+                        `by <span style="color: #64748b; font-family: monospace; font-size: 0.9em;">${shortenAddress(connectedWallet)}</span>`
+                    );
+                    
+                    // 成功提示
+                    alert(
+                        `✅ Coin Added Successfully!\n\n` +
+                        `Coin: ${selectedCoin}\n` +
+                        `Margin: ${investmentAmount} USDT\n` +
+                        `Total Monitored Coins: ${addResult.monitored_coins.length}\n` +
+                        `Total Margin: ${addResult.total_margin} USDC\n` +
+                        `Balance: ${addResult.balance} USDC\n\n` +
+                        `🤖 AI Agent will now monitor ${selectedCoin} for trading opportunities!`
+                    );
+                    
+                    // 重置表单
+                    document.getElementById('alpha-coin-select').value = '';
+                    document.getElementById('investment-amount').value = '';
+                    
+                    btn.textContent = '✅ Added!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }, 2000);
+                    
+                    return;
+                }
+                
+                // 用户未注册，执行完整的 Approve & Start 流程
+                console.log('🆕 New user, starting full registration...');
+                
                 // Step 1: 生成 Agent 私钥并从后端获取对应地址
                 btn.textContent = '🔑 Generating Agent wallet...';
                 console.log('🔑 Step 1: Generating Agent wallet...');
