@@ -806,6 +806,7 @@
                                     <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Margin Used</th>
                                     <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Unrealized PnL</th>
                                     <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">ROE%</th>
+                                    <th style="padding: 12px; text-align: center; font-size: 13px; color: #a0aec0; font-weight: 600;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="positions-tbody">
@@ -2022,6 +2023,57 @@
             }
         }
         
+        // 🔴 平仓功能
+        async function closePosition(coin, size) {
+            if (!connectedWallet) {
+                alert('❌ Please connect wallet first');
+                return;
+            }
+            
+            // 确认对话框
+            const side = size > 0 ? 'LONG' : 'SHORT';
+            const confirmed = confirm(
+                `⚠️ Confirm Close Position?\n\n` +
+                `Coin: ${coin}\n` +
+                `Side: ${side}\n` +
+                `Size: ${Math.abs(size)}\n\n` +
+                `This action cannot be undone.`
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            try {
+                console.log(`🔴 Closing position: ${coin} (size: ${size})`);
+                
+                const response = await fetch('/api/alpha_hunter/close_position', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_address: connectedWallet,
+                        coin: coin,
+                        size: size
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'ok') {
+                    alert(`✅ Position Closed Successfully!\n\n${coin} position has been closed.`);
+                    // 立即刷新持仓
+                    refreshPositions();
+                } else {
+                    alert(`❌ Failed to Close Position\n\n${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('❌ Error closing position:', error);
+                alert(`❌ Failed to Close Position\n\n${error.message}`);
+            }
+        }
+        
         function displayPositions(data) {
             const { positions, balance, account_value, total_margin_used, total_unrealized_pnl } = data;
             
@@ -2082,6 +2134,15 @@
                         </td>
                         <td style="padding: 12px; text-align: right; font-weight: 600; color: ${roeColor};">
                             ${pos.return_on_equity >= 0 ? '+' : ''}${(pos.return_on_equity * 100).toFixed(2)}%
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button 
+                                onclick="closePosition('${pos.coin}', ${pos.size})"
+                                style="padding: 6px 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(239, 68, 68, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.3)'">
+                                ❌ Close
+                            </button>
                         </td>
                     `;
                     

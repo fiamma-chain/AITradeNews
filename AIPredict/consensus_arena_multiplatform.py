@@ -2674,6 +2674,71 @@ async def get_alpha_hunter_positions(user_address: str):
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/alpha_hunter/close_position")
+async def close_alpha_hunter_position(request: Request):
+    """平仓用户在 Hyperliquid 上的持仓"""
+    try:
+        data = await request.json()
+        user_address = data.get("user_address")
+        coin = data.get("coin")
+        size = float(data.get("size", 0))
+        
+        if not user_address or not coin or size == 0:
+            return {"status": "error", "message": "Missing required parameters"}
+        
+        # 检查用户是否已注册
+        agent_client = alpha_hunter.agent_clients.get(user_address)
+        if not agent_client:
+            return {
+                "status": "error",
+                "message": "User not registered or Agent client not found"
+            }
+        
+        logger.info(f"🔴 用户 {user_address[:10]}... 请求平仓: {coin} (size: {size})")
+        
+        # 获取当前价格
+        from trading.hyperliquid.client import HyperliquidClient
+        temp_client = HyperliquidClient()
+        current_price = await temp_client.get_current_price(coin)
+        
+        if not current_price:
+            return {"status": "error", "message": f"Failed to get current price for {coin}"}
+        
+        # 平仓逻辑：
+        # - 如果持仓是 LONG (size > 0)，需要卖出 (is_buy=False)
+        # - 如果持仓是 SHORT (size < 0)，需要买入 (is_buy=True)
+        is_buy = size < 0  # SHORT 持仓需要买入平仓
+        close_size = abs(size)
+        
+        logger.info(f"   平仓参数: is_buy={is_buy}, size={close_size}, price={current_price}")
+        
+        # 执行平仓订单
+        result = await agent_client.place_order(
+            coin=coin,
+            is_buy=is_buy,
+            size=close_size,
+            price=current_price,
+            order_type="Market",  # 使用市价单快速平仓
+            reduce_only=True  # 只平仓，不开新仓
+        )
+        
+        if result.get("status") == "ok":
+            logger.info(f"✅ 平仓成功: {coin} for {user_address[:10]}...")
+            return {
+                "status": "ok",
+                "message": f"Successfully closed {coin} position",
+                "result": result
+            }
+        else:
+            error_msg = result.get("response", "Unknown error")
+            logger.error(f"❌ 平仓失败: {coin} - {error_msg}")
+            return {"status": "error", "message": f"Failed to close position: {error_msg}"}
+        
+    except Exception as e:
+        logger.error(f"❌ close_alpha_hunter_position 失败: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+
+
 if __name__ == "__main__":
     logger.info(f"🌐 启动AI共识交易系统 - 多平台对比版")
     logger.info(f"启用平台: {', '.join(get_enabled_platforms())}")
