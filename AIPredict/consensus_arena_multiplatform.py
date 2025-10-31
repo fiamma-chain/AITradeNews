@@ -2696,27 +2696,21 @@ async def close_alpha_hunter_position(request: Request):
         
         logger.info(f"🔴 用户 {user_address[:10]}... 请求平仓: {coin} (size: {size})")
         
-        # 获取当前价格（使用 agent_client 自带的方法）
-        current_price = await agent_client.get_current_price(coin)
-        
-        if not current_price:
-            return {"status": "error", "message": f"Failed to get current price for {coin}"}
-        
         # 平仓逻辑：
         # - 如果持仓是 LONG (size > 0)，需要卖出 (is_buy=False)
         # - 如果持仓是 SHORT (size < 0)，需要买入 (is_buy=True)
         is_buy = size < 0  # SHORT 持仓需要买入平仓
         close_size = abs(size)
         
-        logger.info(f"   平仓参数: is_buy={is_buy}, size={close_size}, price={current_price}")
+        logger.info(f"   平仓参数: is_buy={is_buy}, size={close_size} (市价单)")
         
-        # 执行平仓订单
+        # 执行平仓订单（使用市价单，price=None 会自动获取最优价格）
         result = await agent_client.place_order(
             coin=coin,
             is_buy=is_buy,
             size=close_size,
-            price=current_price,
-            order_type="Market",  # 使用市价单快速平仓
+            price=None,  # 市价单，自动获取最优价格
+            order_type="Market",
             reduce_only=True  # 只平仓，不开新仓
         )
         
@@ -2735,6 +2729,66 @@ async def close_alpha_hunter_position(request: Request):
     except Exception as e:
         logger.error(f"❌ close_alpha_hunter_position 失败: {e}", exc_info=True)
         return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/alpha_hunter/global_stats")
+async def get_alpha_hunter_global_stats():
+    """获取Alpha Hunter全局统计数据"""
+    try:
+        if not alpha_hunter or not alpha_hunter.configs:
+            return {
+                "status": "ok",
+                "total_users": 0,
+                "total_volume": 0.0,
+                "total_profit": 0.0
+            }
+        
+        total_volume = 0.0  # 所有用户的授权资金总和
+        total_profit = 0.0  # 所有用户的总收益
+        
+        # 遍历所有用户
+        for user_address, user_config in alpha_hunter.configs.items():
+            agent_client = alpha_hunter.agent_clients.get(user_address)
+            if not agent_client:
+                continue
+            
+            try:
+                # 获取用户账户信息
+                account_info = await agent_client.get_account_info()
+                
+                # 计算用户授权资金：所有币种的保证金总和
+                user_margin = sum(float(v) for v in user_config.margin_per_coin.values())
+                total_volume += user_margin
+                
+                # 计算用户总收益：所有持仓的未实现盈亏
+                asset_positions = account_info.get("assetPositions", [])
+                for pos in asset_positions:
+                    position_data = pos.get("position", {})
+                    szi = float(position_data.get("szi", 0))
+                    if szi != 0:  # 只计算有持仓的
+                        unrealized_pnl = float(position_data.get("unrealizedPnl", 0))
+                        total_profit += unrealized_pnl
+            
+            except Exception as e:
+                logger.warning(f"⚠️ 获取用户 {user_address[:10]}... 数据失败: {e}")
+                continue
+        
+        return {
+            "status": "ok",
+            "total_users": len(alpha_hunter.configs),
+            "total_volume": round(total_volume, 2),
+            "total_profit": round(total_profit, 2)
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ get_alpha_hunter_global_stats 失败: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": str(e),
+            "total_users": 0,
+            "total_volume": 0.0,
+            "total_profit": 0.0
+        }
 
 
 if __name__ == "__main__":
