@@ -747,6 +747,75 @@
                 </div>
             </div>
             
+            <!-- Positions Section -->
+            <div class="grid-row-full">
+                <div class="section-card" style="border: 3px solid #8b5cf6; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);">
+                    <div class="section-header">
+                        <div class="section-icon">📊</div>
+                        <div class="section-title">
+                            <h2 style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">My Positions</h2>
+                            <p class="count" id="positions-count">Real-time Hyperliquid positions</p>
+                        </div>
+                        <button onclick="refreshPositions()" 
+                                style="padding: 8px 16px; background: rgba(139, 92, 246, 0.2); color: #8b5cf6; border: 1px solid #8b5cf6; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.background='rgba(139, 92, 246, 0.3)'"
+                                onmouseout="this.style.background='rgba(139, 92, 246, 0.2)'">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Account Summary -->
+                    <div id="account-summary" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #8b5cf6;">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                            <div>
+                                <div style="font-size: 12px; color: #a0aec0; margin-bottom: 5px;">Account Value</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #8b5cf6;" id="account-value">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #a0aec0; margin-bottom: 5px;">Available Balance</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #10b981;" id="available-balance">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #a0aec0; margin-bottom: 5px;">Total Margin Used</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;" id="total-margin">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #a0aec0; margin-bottom: 5px;">Total Unrealized PnL</div>
+                                <div style="font-size: 20px; font-weight: 700;" id="total-pnl">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Positions Table -->
+                    <div id="positions-container" style="overflow-x: auto;">
+                        <div id="positions-placeholder" style="text-align: center; padding: 60px 20px; color: #a0aec0;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No positions yet</div>
+                            <div style="font-size: 14px;">Connect your wallet and start trading to see positions here</div>
+                        </div>
+                        
+                        <table id="positions-table" style="width: 100%; border-collapse: collapse; display: none;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid rgba(139, 92, 246, 0.3);">
+                                    <th style="padding: 12px; text-align: left; font-size: 13px; color: #a0aec0; font-weight: 600;">Coin</th>
+                                    <th style="padding: 12px; text-align: left; font-size: 13px; color: #a0aec0; font-weight: 600;">Side</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Size</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Entry Price</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Position Value</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Leverage</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Margin Used</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">Unrealized PnL</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 13px; color: #a0aec0; font-weight: 600;">ROE%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positions-tbody">
+                                <!-- 动态加载持仓数据 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 第三行：三个卡片 -->
             <div class="grid-row-three">
                 <!-- 2. Trading Platforms -->
@@ -1659,6 +1728,9 @@
                 
                 console.log('✅ Wallet connected:', connectedWallet);
                 
+                // 启动持仓自动刷新
+                startPositionsAutoRefresh();
+                
             } catch (error) {
                 console.error('❌ Failed to connect wallet:', error);
                 alert('Failed to connect wallet. Please make sure MetaMask is unlocked.');
@@ -1926,6 +1998,115 @@
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
+        }
+        
+        // 🚀 持仓管理功能
+        async function refreshPositions() {
+            if (!connectedWallet) {
+                console.log('⚠️ Wallet not connected');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/alpha_hunter/positions?user_address=${connectedWallet}`);
+                const data = await response.json();
+                
+                if (data.status !== 'ok') {
+                    console.error('Failed to fetch positions:', data.message);
+                    return;
+                }
+                
+                displayPositions(data);
+            } catch (error) {
+                console.error('❌ Error fetching positions:', error);
+            }
+        }
+        
+        function displayPositions(data) {
+            const { positions, balance, account_value, total_margin_used, total_unrealized_pnl } = data;
+            
+            // 更新账户摘要
+            document.getElementById('account-value').textContent = `$${account_value.toFixed(2)}`;
+            document.getElementById('available-balance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('total-margin').textContent = `$${total_margin_used.toFixed(2)}`;
+            
+            const pnlElement = document.getElementById('total-pnl');
+            pnlElement.textContent = `$${total_unrealized_pnl.toFixed(2)}`;
+            pnlElement.style.color = total_unrealized_pnl >= 0 ? '#10b981' : '#ef4444';
+            
+            document.getElementById('positions-count').textContent = `${positions.length} active position${positions.length !== 1 ? 's' : ''}`;
+            
+            // 显示/隐藏内容
+            if (positions.length === 0) {
+                document.getElementById('account-summary').style.display = 'none';
+                document.getElementById('positions-placeholder').style.display = 'block';
+                document.getElementById('positions-table').style.display = 'none';
+            } else {
+                document.getElementById('account-summary').style.display = 'block';
+                document.getElementById('positions-placeholder').style.display = 'none';
+                document.getElementById('positions-table').style.display = 'table';
+                
+                // 更新持仓表格
+                const tbody = document.getElementById('positions-tbody');
+                tbody.innerHTML = '';
+                
+                positions.forEach(pos => {
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                    row.style.transition = 'background-color 0.2s';
+                    row.onmouseover = () => row.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+                    row.onmouseout = () => row.style.backgroundColor = 'transparent';
+                    
+                    const sideColor = pos.side === 'LONG' ? '#10b981' : '#ef4444';
+                    const pnlColor = pos.unrealized_pnl >= 0 ? '#10b981' : '#ef4444';
+                    const roeColor = pos.return_on_equity >= 0 ? '#10b981' : '#ef4444';
+                    
+                    row.innerHTML = `
+                        <td style="padding: 12px; font-weight: 600; color: white;">${pos.coin}</td>
+                        <td style="padding: 12px;">
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: ${pos.side === 'LONG' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${sideColor};">
+                                ${pos.side}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">${Math.abs(pos.size).toFixed(4)}</td>
+                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">$${pos.entry_price.toFixed(4)}</td>
+                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">$${pos.position_value.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <span style="padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: 600; background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+                                ${pos.leverage}x
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right; color: #e2e8f0;">$${pos.margin_used.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; font-weight: 600; color: ${pnlColor};">
+                            ${pos.unrealized_pnl >= 0 ? '+' : ''}$${pos.unrealized_pnl.toFixed(2)}
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-weight: 600; color: ${roeColor};">
+                            ${pos.return_on_equity >= 0 ? '+' : ''}${(pos.return_on_equity * 100).toFixed(2)}%
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+        }
+        
+        // 自动刷新持仓（每30秒）
+        let positionsRefreshInterval = null;
+        
+        function startPositionsAutoRefresh() {
+            if (positionsRefreshInterval) {
+                clearInterval(positionsRefreshInterval);
+            }
+            
+            // 立即刷新一次
+            refreshPositions();
+            
+            // 每30秒自动刷新
+            positionsRefreshInterval = setInterval(() => {
+                if (connectedWallet) {
+                    refreshPositions();
+                }
+            }, 30000);
         }
         
         // 显示新闻链接提交模态框（News Sources用 - 简化版）

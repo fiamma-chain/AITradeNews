@@ -2610,6 +2610,70 @@ async def get_alpha_hunter_status(user_address: str):
         return {"status": "error", "message": str(e)}
 
 
+@app.get("/api/alpha_hunter/positions")
+async def get_alpha_hunter_positions(user_address: str):
+    """获取用户在 Hyperliquid 上的持仓信息"""
+    try:
+        # 检查用户是否已注册
+        agent_client = alpha_hunter.agent_clients.get(user_address)
+        if not agent_client:
+            return {
+                "status": "error",
+                "message": "User not registered or Agent client not found"
+            }
+        
+        # 获取账户信息（包含持仓）
+        account_info = await agent_client.get_account_info()
+        
+        # 提取持仓信息
+        positions = []
+        asset_positions = account_info.get("assetPositions", [])
+        
+        for pos in asset_positions:
+            position_data = pos.get("position", {})
+            coin = position_data.get("coin", "")
+            
+            # 过滤掉没有持仓的币种
+            szi = float(position_data.get("szi", 0))
+            if szi == 0:
+                continue
+            
+            entry_px = float(position_data.get("entryPx", 0))
+            position_value = float(position_data.get("positionValue", 0))
+            unrealized_pnl = float(position_data.get("unrealizedPnl", 0))
+            leverage = position_data.get("leverage", {})
+            
+            positions.append({
+                "coin": coin,
+                "size": szi,
+                "side": "LONG" if szi > 0 else "SHORT",
+                "entry_price": entry_px,
+                "position_value": position_value,
+                "unrealized_pnl": unrealized_pnl,
+                "leverage": leverage.get("value", 1) if isinstance(leverage, dict) else leverage,
+                "liquidation_px": position_data.get("liquidationPx"),
+                "margin_used": position_data.get("marginUsed", 0),
+                "return_on_equity": position_data.get("returnOnEquity", 0)
+            })
+        
+        # 获取账户余额
+        balance = float(account_info.get("withdrawable", 0))
+        margin_summary = account_info.get("marginSummary", {})
+        
+        return {
+            "status": "ok",
+            "positions": positions,
+            "balance": balance,
+            "account_value": float(margin_summary.get("accountValue", balance)),
+            "total_margin_used": float(margin_summary.get("totalMarginUsed", 0)),
+            "total_unrealized_pnl": sum(p["unrealized_pnl"] for p in positions)
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ get_alpha_hunter_positions 失败: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+
+
 if __name__ == "__main__":
     logger.info(f"🌐 启动AI共识交易系统 - 多平台对比版")
     logger.info(f"启用平台: {', '.join(get_enabled_platforms())}")
