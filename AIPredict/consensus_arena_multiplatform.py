@@ -2696,10 +2696,8 @@ async def close_alpha_hunter_position(request: Request):
         
         logger.info(f"🔴 用户 {user_address[:10]}... 请求平仓: {coin} (size: {size})")
         
-        # 获取当前价格
-        from trading.hyperliquid.client import HyperliquidClient
-        temp_client = HyperliquidClient()
-        current_price = await temp_client.get_current_price(coin)
+        # 获取当前价格（使用 agent_client 自带的方法）
+        current_price = await agent_client.get_current_price(coin)
         
         if not current_price:
             return {"status": "error", "message": f"Failed to get current price for {coin}"}
