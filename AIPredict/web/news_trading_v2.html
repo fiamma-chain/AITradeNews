@@ -2321,6 +2321,10 @@
                     );
                     // 刷新数据以更新持仓信息
                     loadData();
+                    // 🚀 立即刷新持仓显示
+                    if (typeof refreshPositions === 'function') {
+                        refreshPositions();
+                    }
                     break;
                     
                 default:
